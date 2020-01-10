@@ -19,6 +19,7 @@ const authRouter = require('./routes/auth')
 const gameRouter = require('./routes/game')
 
 const SocketManager = require('./socket-io/socketManager')
+const SocketEmitter = require('./socket-io/socketEmitter')
 const PlayerEvents = require('./socket-io/playerEvents')
 
 const app = express()
@@ -51,7 +52,7 @@ const session = expressSession({
 })
 
 io.use(sharedSession(session))
-PlayerEvents.setIo(io)
+SocketEmitter.setIo(io)
 
 io.on('connection', async socket => {
   const getSessionUser = () => {

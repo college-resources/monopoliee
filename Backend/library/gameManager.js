@@ -2,6 +2,8 @@ const config = require('../config.json')
 
 const Game = require('../models/game')
 
+const SocketWatcher = require('../socket-io/socketWatcher')
+
 const GameHolder = require('./gameHolder')
 const GameError = require('./gameError')
 
@@ -14,6 +16,7 @@ class GameManager {
     this.join = this.join.bind(this)
     this.leave = this.leave.bind(this)
     this.current = this.current.bind(this)
+    this.getGameHolder = this.getGameHolder.bind(this)
   }
 
   async init () {
@@ -127,6 +130,10 @@ class GameManager {
       }
       game.players.push(player)
       await game.save()
+
+      if (game.players.length === game.seats) {
+        self._gameHolder.getGameEvents().onGameStarted()
+      }
     }
 
     self._gameHolder.getPlayerEvents().onPlayerJoined(player)
@@ -177,11 +184,19 @@ class GameManager {
 
     await self._gameHolder.update()
 
+    if (!game.players.length) {
+      SocketWatcher.disposeSocketWatcher(game.id)
+    }
+
     return self._gameHolder.getJSON()
   }
 
   current () {
     return this._gameHolder && this._gameHolder.getJSON()
+  }
+
+  getGameHolder () {
+    return this._gameHolder
   }
 }
 
