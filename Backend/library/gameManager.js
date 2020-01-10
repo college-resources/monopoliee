@@ -65,7 +65,7 @@ class GameManager {
 
     self._gameHolder.getPlayerEvents().onPlayerJoined(player)
 
-    return self._gameHolder
+    return self._gameHolder.getJSON()
   }
 
   async join (gameId) {
@@ -131,7 +131,9 @@ class GameManager {
 
     self._gameHolder.getPlayerEvents().onPlayerJoined(player)
 
-    return self._gameHolder.update()
+    await self._gameHolder.update()
+
+    return self._gameHolder.getJSON()
   }
 
   async leave () {
@@ -173,7 +175,9 @@ class GameManager {
 
     self._gameHolder.getPlayerEvents().onPlayerLeft(self._user._id)
 
-    return this._gameHolder.update()
+    await self._gameHolder.update()
+
+    return self._gameHolder.getJSON()
   }
 
   current () {
