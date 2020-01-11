@@ -33,6 +33,11 @@ const gameSchema = new Schema(
         required: true,
         default: Date.now()
       },
+      index: {
+        type: Number,
+        required: true,
+        default: 0
+      },
       _id: false
     }],
     properties: [{

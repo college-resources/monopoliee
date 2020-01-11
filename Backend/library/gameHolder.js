@@ -1,5 +1,6 @@
 const Game = require('../models/game')
 
+const GameEvents = require('../socket-io/gameEvents')
 const PlayerEvents = require('../socket-io/playerEvents')
 
 class GameHolder {
@@ -9,7 +10,8 @@ class GameHolder {
     }
 
     this._game = game
-    this._playerEvents = new PlayerEvents(game._id)
+    this._gameEvents = new GameEvents(game.id)
+    this._playerEvents = new PlayerEvents(game.id)
     // TODO: Subscribe to change stream
 
     this.getJSON = this.getJSON.bind(this)
@@ -19,6 +21,10 @@ class GameHolder {
 
   getJSON () {
     return this._game.toJSON()
+  }
+
+  getGameEvents () {
+    return this._gameEvents
   }
 
   getPlayerEvents () {

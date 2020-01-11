@@ -31,6 +31,8 @@ public class GameManager : MonoBehaviour
     
     private Game _game;
 
+    public Game Game => _game;
+
     public void GoToGame(Game game)
     {
         _game = game;

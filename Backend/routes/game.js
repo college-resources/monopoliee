@@ -44,7 +44,7 @@ router.post('/new', [
       req.session.user._id,
       {
         $set: {
-          lastGame: game.getJSON()._id,
+          lastGame: game._id,
           disconnected: 0
         }
       },
@@ -58,7 +58,7 @@ router.post('/new', [
     // Update session
     req.session.user = helpers.transformUser(user)
 
-    return res.json(game.getJSON())
+    return res.json(game)
   } catch (err) {
     if (err instanceof GameError) {
       return res.status(400).json(err.toJSON())
@@ -83,7 +83,7 @@ router.post('/join', [
       const game = res.locals.game.current()
       if (game._id === req.body.game_id) {
         // TODO: Trigger player reconnect
-        return game
+        return res.json(game)
       }
       return res.status(400).json({ error: { message: 'Already in game' } })
     }
@@ -95,7 +95,7 @@ router.post('/join', [
       req.session.user._id,
       {
         $set: {
-          lastGame: game.getJSON()._id,
+          lastGame: game._id,
           disconnected: 0
         }
       },
@@ -163,7 +163,7 @@ router.get('/leave', async (req, res, next) => {
       req.session.user._id,
       {
         $set: {
-          lastGame: game.getJSON().id,
+          lastGame: game._id,
           disconnected: 0
         }
       },

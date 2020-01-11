@@ -61,7 +61,9 @@ public class LoadGames : MonoBehaviour
                         }
                         else
                         {
-                            Game gameToJoin = Game.GetGame(response);
+                            var gameToJoin = Game.GetGame(response);
+                            var userId = AuthenticationManager.Instance.user.Id;
+                            gameToJoin.AddPlayer(Player.GetPlayerById(userId));
                             GameManager.Instance.GoToGame(gameToJoin);
                         }
                     });
@@ -80,6 +82,7 @@ public class LoadGames : MonoBehaviour
         {
             if (error == null)
             {
+                Game.ClearCache();
                 JArray games = (JArray) response;
                 gameList = new List<Game>(games.Count);
                 foreach (JToken game in games)

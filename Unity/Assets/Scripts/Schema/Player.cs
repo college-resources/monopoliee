@@ -28,6 +28,11 @@ namespace Schema
 
             return _players[userId];
         }
+        
+        public static Player GetPlayerById(string userId)
+        {
+            return _players[userId];
+        }
 
         #endregion
         
@@ -36,12 +41,14 @@ namespace Schema
         private int _position;
         private int _duplicateRolls;
         private bool _jailed;
+        private int _index;
 
         public string UserId => _userId;
         public int Balance => _balance;
         public int Position => _position;
         public int DuplicateRolls => _duplicateRolls;
         public bool Jailed => _jailed;
+        public int Index => _index;
 
         private Player(JToken player)
         {
@@ -50,6 +57,7 @@ namespace Schema
             _position = (int) player["position"];
             _duplicateRolls = (int) player["duplicateRolls"];
             _jailed = (bool) player["jailed"];
+            _index = (int) player["index"];
         }
     }
 }

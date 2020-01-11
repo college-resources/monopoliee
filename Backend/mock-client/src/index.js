@@ -1,4 +1,4 @@
-/* global alert, fetch */
+/* global fetch */
 
 import React from 'react'
 import ReactDOM from 'react-dom'
@@ -8,11 +8,14 @@ import Game from './components/Game'
 import Lobby from './components/Lobby'
 import Login from './components/Login'
 
+let socket
+
+export function getSocket () {
+  return socket
+}
+
 window.onload = async () => {
-  const socket = io()
-  socket.on('playerJoined', data => {
-    alert('Joined ' + data.player.user)
-  })
+  socket = io()
 
   const root = document.getElementById('root')
   const logout = document.getElementById('logout')
