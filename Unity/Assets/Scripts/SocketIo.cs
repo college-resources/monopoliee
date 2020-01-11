@@ -1,23 +1,29 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using NativeWebSocket;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Schema;
 using UnityEngine;
 using UnityEngine.Networking;
+
+public delegate void OnPlayerJoined(Player player);
 
 public class SocketIo : MonoBehaviour
 {
     private WebSocket _websocket;
+    public event OnPlayerJoined PlayerJoined;
 
     // Start is called before the first frame update
     void Start()
     {
         StartCoroutine(Upload("socket.io/?EIO=3&transport=polling", null, async (response, error) =>
         {
-            string sid = (string) response["data"]["sid"];
+            if (error != null) return;
+            
+            string sid = (string) response["sid"];
 
             _websocket = new WebSocket("ws://localhost:3000/socket.io/?EIO=3&transport=websocket&sid=" + sid);
 
@@ -35,6 +41,7 @@ public class SocketIo : MonoBehaviour
             _websocket.OnClose += (e) =>
             {
                 Debug.Log("Connection closed!");
+                StartCoroutine(waiter());
             };
 
             _websocket.OnMessage += (bytes) =>
@@ -42,18 +49,22 @@ public class SocketIo : MonoBehaviour
                 try
                 {
                     string message = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+
+                    if (message == "3probe")
+                    {
+                        _websocket.SendText("5");
+                        return;
+                    }
+
                     if (message.Length > 3 && message.Substring(0, 2) == "42")
                     {
                         message = message.Substring(2);
                         JArray array = JArray.Parse(message);
             
-                        if ((string) array[0] == "location")
+                        if ((string) array[0] == "playerJoined")
                         {
-                            JToken vector = array[1];
-                            int x = (int) vector["x"];
-                            int y = (int) vector["y"];
-                            int z = (int) vector["z"];
-                            transform.position = new Vector3(x, y, z);
+                            Player player = Player.GetPlayer(array[1]["player"]);
+                            PlayerJoined?.Invoke(player);
                         }
                     }
                 }
@@ -64,11 +75,17 @@ public class SocketIo : MonoBehaviour
             };
 
             // Keep sending messages every 15s
-            InvokeRepeating(nameof(SendWebSocketMessage), 0.0f, 15.0f);
-
+            InvokeRepeating(nameof(SendWebSocketMessage), 0.0f, 5.0f);
+            
             // Waiting for messages
             await _websocket.Connect();
         }));
+    }
+    
+    IEnumerator waiter()
+    {
+        yield return new WaitForSecondsRealtime(5);
+        Start();
     }
 
     async void SendWebSocketMessage()
@@ -100,7 +117,8 @@ public class SocketIo : MonoBehaviour
                 try
                 {
                     string resText = www.downloadHandler.text;
-                    JToken response = JToken.Parse(resText);
+                    string json = resText.Split(new[] {":0"}, StringSplitOptions.None)[1];
+                    JToken response = JToken.Parse(json);
                     callback(response, www.error);
                 }
                 catch (JsonException ex)
