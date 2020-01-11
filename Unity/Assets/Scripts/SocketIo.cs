@@ -10,11 +10,14 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 public delegate void OnPlayerJoined(Player player);
+public delegate void OnPlayerLeft(Player player);
 
 public class SocketIo : MonoBehaviour
 {
     private WebSocket _websocket;
+    private bool _closed;
     public event OnPlayerJoined PlayerJoined;
+    public event OnPlayerLeft PlayerLeft;
 
     // Start is called before the first frame update
     void Start()
@@ -29,6 +32,7 @@ public class SocketIo : MonoBehaviour
 
             _websocket.OnOpen += () =>
             {
+                _closed = false;
                 Debug.Log("Connection open!");
                 _websocket.SendText("2probe");
             };
@@ -41,11 +45,13 @@ public class SocketIo : MonoBehaviour
             _websocket.OnClose += (e) =>
             {
                 Debug.Log("Connection closed!");
-                StartCoroutine(waiter());
+                if (!_closed) StartCoroutine(waiter());
             };
 
             _websocket.OnMessage += (bytes) =>
             {
+                if (_closed) return;
+                
                 try
                 {
                     string message = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
@@ -56,15 +62,30 @@ public class SocketIo : MonoBehaviour
                         return;
                     }
 
-                    if (message.Length > 3 && message.Substring(0, 2) == "42")
+                    if (message.Length <= 3 || message.Substring(0, 2) != "42") return;
+                    
+                    message = message.Substring(2);
+                    JArray array = JArray.Parse(message);
+                    
+                    switch ((string) array[0])
                     {
-                        message = message.Substring(2);
-                        JArray array = JArray.Parse(message);
-            
-                        if ((string) array[0] == "playerJoined")
+                        case "playerJoined":
                         {
                             Player player = Player.GetPlayer(array[1]["player"]);
                             PlayerJoined?.Invoke(player);
+                            break;
+                        }
+                        case "playerLeft":
+                        {
+                            foreach (var player in GameManager.Instance.Game.Players)
+                            {
+                                if (player.UserId == (string) array[1]["user"])
+                                {
+                                    GameManager.Instance.Game.Players.Remove(player);
+                                    PlayerLeft?.Invoke(player);
+                                }
+                            }
+                            break;
                         }
                     }
                 }
@@ -94,6 +115,20 @@ public class SocketIo : MonoBehaviour
         {
             // Sending plain text
             await _websocket.SendText("2");
+        }
+    }
+
+    public void Close()
+    {
+        try
+        {
+            _closed = true;
+            CancelInvoke(nameof(SendWebSocketMessage));
+            _websocket.Close();
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e.Message);
         }
     }
 
