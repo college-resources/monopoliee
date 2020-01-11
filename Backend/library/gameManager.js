@@ -126,7 +126,8 @@ class GameManager {
         balance: config.game.initialBalance,
         position: 0,
         duplicateRolls: 0,
-        jailed: false
+        jailed: false,
+        index: [...Array(config.game.maxPlayers)].map((_, i) => i).find(i => !game.players.find(({ index }) => index === i))
       }
       game.players.push(player)
       await game.save()
