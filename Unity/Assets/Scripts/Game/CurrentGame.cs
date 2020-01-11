@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Schema;
+﻿using Schema;
 using TMPro;
 using UnityEngine;
 
@@ -13,23 +11,37 @@ public class CurrentGame : MonoBehaviour
     void Start()
     {
         socketIo.PlayerJoined += SocketIoOnPlayerJoined;
+        socketIo.PlayerLeft += SocketIoOnPlayerLeft;
     }
 
     private void SocketIoOnPlayerJoined(Player player)
     {
-        Game game = GameManager.Instance.Game;
-        UpdateBottomBar(game);
+        UpdateBottomBar();
     }
     
-    private void UpdateBottomBar(Game game)
+    private void SocketIoOnPlayerLeft(Player player)
     {
-        Transform bottomBarTransform = bottomBar.transform;
-        Transform nameTextTransform = bottomBarTransform.Find("PlayerOne").Find("PlayerOneNameText");
-        TextMeshProUGUI playerOneNameText = nameTextTransform.GetComponent<TextMeshProUGUI>();
-        playerOneNameText.text = game.Players[0].UserId;
+        UpdateBottomBar();
+    }
+    
+    private void UpdateBottomBar()
+    {
+        var game = GameManager.Instance.Game;
+        var bottomBarTransform = bottomBar.transform;
+
+        if (game == null) return;
+
+        foreach (var player in game.Players)
+        {
+            var index = player.Index;
         
-        Transform nameCurrencyTransform = bottomBarTransform.Find("PlayerOne").Find("PlayerOneCurrencyText");
-        TextMeshProUGUI playerOneCurrencyText = nameCurrencyTransform.GetComponent<TextMeshProUGUI>();
-        playerOneCurrencyText.text = game.Players[0].Balance.ToString() + "ΔΜ";
+            var nameTextTransform = bottomBarTransform.GetChild(index).GetChild(0);
+            var balanceTextTransform = bottomBarTransform.GetChild(index).GetChild(1);
+            var nameTextMeshPro = nameTextTransform.GetComponent<TextMeshProUGUI>();
+            var balanceTextMeshPro = balanceTextTransform.GetComponent<TextMeshProUGUI>();
+
+            nameTextMeshPro.text = player.UserId;
+            balanceTextMeshPro.text = player.Balance + "ΔΜ";
+        }
     }
 }
