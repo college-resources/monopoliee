@@ -12,6 +12,8 @@ public class CurrentGame : MonoBehaviour
     {
         socketIo.PlayerJoined += SocketIoOnPlayerJoined;
         socketIo.PlayerLeft += SocketIoOnPlayerLeft;
+        
+        UpdateBottomBar();
     }
 
     private void SocketIoOnPlayerJoined(Player player)
@@ -30,6 +32,17 @@ public class CurrentGame : MonoBehaviour
         var bottomBarTransform = bottomBar.transform;
 
         if (game == null) return;
+
+        for (var i = 0; i < 4; i++)
+        {
+            var nameTextTransform = bottomBarTransform.GetChild(i).GetChild(0);
+            var balanceTextTransform = bottomBarTransform.GetChild(i).GetChild(1);
+            var nameTextMeshPro = nameTextTransform.GetComponent<TextMeshProUGUI>();
+            var balanceTextMeshPro = balanceTextTransform.GetComponent<TextMeshProUGUI>();
+
+            nameTextMeshPro.text = "";
+            balanceTextMeshPro.text = "";
+        }
 
         foreach (var player in game.Players)
         {
