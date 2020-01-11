@@ -72,16 +72,17 @@ public class SocketIo : MonoBehaviour
                         case "playerJoined":
                         {
                             Player player = Player.GetPlayer(array[1]["player"]);
+                            GetCurrentGame().Players.Add(player);
                             PlayerJoined?.Invoke(player);
                             break;
                         }
                         case "playerLeft":
                         {
-                            foreach (var player in GameManager.Instance.Game.Players)
+                            foreach (var player in GetCurrentGame().Players.ToArray())
                             {
                                 if (player.UserId == (string) array[1]["user"])
                                 {
-                                    GameManager.Instance.Game.Players.Remove(player);
+                                    GetCurrentGame().Players.Remove(player);
                                     PlayerLeft?.Invoke(player);
                                 }
                             }
@@ -136,7 +137,12 @@ public class SocketIo : MonoBehaviour
     {
         await _websocket.Close();
     }
-    
+
+    private Game GetCurrentGame()
+    {
+        return GameManager.Instance.Game;
+    }
+
     private IEnumerator Upload(string path, WWWForm form = null, APIWrapper.APICallback callback = null)
     {
         // TODO: Hardcoded URL

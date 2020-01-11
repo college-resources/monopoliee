@@ -61,7 +61,9 @@ public class LoadGames : MonoBehaviour
                         }
                         else
                         {
-                            Game gameToJoin = Game.GetGame(response);
+                            var gameToJoin = Game.GetGame(response);
+                            var userId = AuthenticationManager.Instance.user.Id;
+                            gameToJoin.AddPlayer(Player.GetPlayerById(userId));
                             GameManager.Instance.GoToGame(gameToJoin);
                         }
                     });
