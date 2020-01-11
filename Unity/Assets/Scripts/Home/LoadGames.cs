@@ -80,6 +80,7 @@ public class LoadGames : MonoBehaviour
         {
             if (error == null)
             {
+                Game.ClearCache();
                 JArray games = (JArray) response;
                 gameList = new List<Game>(games.Count);
                 foreach (JToken game in games)
