@@ -4,8 +4,12 @@ using UnityEngine.SceneManagement;
 
 public class Leave : MonoBehaviour
 {
+    public SocketIo socketIo;
+    
     public void OnClick()
     {
+        socketIo.Close();
+        
         APIWrapper.Instance.GameLeave((response, error) =>
         {
             if (error == null)
