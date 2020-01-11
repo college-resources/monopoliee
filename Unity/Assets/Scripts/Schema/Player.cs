@@ -28,6 +28,11 @@ namespace Schema
 
             return _players[userId];
         }
+        
+        public static Player GetPlayerById(string userId)
+        {
+            return _players[userId];
+        }
 
         #endregion
         
