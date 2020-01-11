@@ -54,6 +54,11 @@ namespace Schema
             _currentPlayerId = (string) game["currentPlayer"];
         }
 
+        public void AddPlayer(Player player)
+        {
+            _players.Add(player);
+        }
+
         public static void ClearCache()
         {
             _games?.Clear();
