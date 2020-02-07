@@ -94,13 +94,33 @@ io.on('connection', async socket => {
   })
 })
 
+app.use((req, _, next) => {
+  console.time('session_load ' + req.path)
+  next()
+})
+
 app.use(cors())
 app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(session)
 
+app.use((req, _, next) => {
+  console.timeEnd('session_load ' + req.path)
+  next()
+})
+
+app.use((req, _, next) => {
+  console.time('game_load ' + req.path)
+  next()
+})
+
 app.use(gameMiddleware)
+
+app.use((req, _, next) => {
+  console.timeEnd('game_load ' + req.path)
+  next()
+})
 
 app.use('/auth', authRouter)
 app.use('/game', gameRouter)
