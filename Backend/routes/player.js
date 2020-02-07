@@ -100,6 +100,8 @@ router.get('/roll-dice', async (req, res, next) => {
         const diceSum = dice[0] + dice[1]
         const newLocation = (player.position + diceSum) % 40
 
+        gameHolder.getPlayerEvents().onPlayerMoved(player.user, newLocation)
+
         if (player.position + diceSum >= 40) {
           gamePlayer.balance += 200
 
@@ -108,9 +110,7 @@ router.get('/roll-dice', async (req, res, next) => {
           gameHolder.getPlayerEvents().onPlayerBalanceChanged(player.user, gamePlayer.balance)
         }
 
-        gamePlayer.position = newLocation
-
-        gameHolder.getPlayerEvents().onPlayerMoved(player.user, newLocation)
+        if (newLocation !== 30) gamePlayer.position = newLocation
       }
     }
 
