@@ -49,7 +49,12 @@ namespace Schema
             set => _balance = value;
         }
 
-        public int Position => _position;
+        public int Position
+        {
+            get => _position;
+            set => _position = value;
+        }
+
         public int DuplicateRolls => _duplicateRolls;
         public bool Jailed => _jailed;
         public int Index => _index;

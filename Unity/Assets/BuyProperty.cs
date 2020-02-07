@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Schema;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,12 +29,13 @@ public class BuyProperty : MonoBehaviour
 
     public IEnumerator DisplayCard(int location)
     {
-        if (GameManager.Instance.Game.CurrentPlayerId == AuthenticationManager.Instance.user.Id)
+        if (GameManager.Instance.Game.CurrentPlayerId == AuthenticationManager.Instance.user.Id &&
+            string.IsNullOrEmpty(Property.GetPropertyByLocation(location).OwnerId))
         {
             _buy.SetActive(true);
             _abandon.SetActive(true);
         }
-            
+        
         if (location == 5 || location == 15 || location == 25 || location == 35)
         {
             List<StationCard> stationCards = _cardLoader.stationsList;

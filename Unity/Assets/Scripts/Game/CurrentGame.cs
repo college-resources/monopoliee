@@ -73,12 +73,14 @@ public class CurrentGame : MonoBehaviour
     private void SocketIoOnPlayerJoined(Player player)
     {
         UpdateBottomBar();
+        UpdateOwnedProperties();
         AddPlayer(player);
     }
     
     private void SocketIoOnPlayerLeft(Player player)
     {
         UpdateBottomBar();
+        UpdateOwnedProperties();
     }
     
     private void SocketIoOnPlayerRolledDice(Player player, int[] dice)

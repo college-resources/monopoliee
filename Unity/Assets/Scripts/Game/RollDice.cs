@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 
-public class EndTurn : MonoBehaviour
+public class RollDice : MonoBehaviour
 {
     public void OnClick()
     {
-        APIWrapper.Instance.PlayerEndTurn((response, error) =>
+        APIWrapper.Instance.PlayerRollDice((response, error) =>
         {
             if (error != null)
             {
