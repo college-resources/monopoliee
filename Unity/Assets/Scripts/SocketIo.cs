@@ -240,7 +240,7 @@ public class SocketIo : MonoBehaviour
 
     private static IEnumerator Upload(string path, APIWrapper.APICallback callback = null)
     {
-        using var www = UnityWebRequest.Get(APIWrapper.HTTP_PROTOCOL + APIWrapper.URL + path);
+        var www = UnityWebRequest.Get(APIWrapper.HTTP_PROTOCOL + APIWrapper.URL + path);
         yield return www.SendWebRequest();
 
         if (callback != null)

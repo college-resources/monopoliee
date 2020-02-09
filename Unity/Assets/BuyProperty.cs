@@ -10,7 +10,7 @@ public class BuyProperty : MonoBehaviour
 {
     private GameObject _abandon;
     private GameObject _buy;
-    private GameObject _cards;ke
+    private GameObject _cards;
     public GameObject cardLoader;
     private CardLoader _cardLoader;
     private List<GameObject> _cardsList;
