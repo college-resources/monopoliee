@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,48 +13,53 @@ public class NewGameDialog : MonoBehaviour
 
     private void Awake()
     {
-        Button canvasBtn = canvas.GetComponent<Button>();
+        var canvasBtn = canvas.GetComponent<Button>();
         canvasBtn.onClick.AddListener(() =>
         {
             gameObject.SetActive(false);
         });
 
-        TextInput seatsTxt = seats.GetComponent<TextInput>();
-        Button createBtn = create.GetComponent<Button>();
-        createBtn.onClick.AddListener(() =>
+        var seatsTxt = seats.GetComponent<TextInput>();
+        var createBtn = create.GetComponent<Button>();
+        createBtn.onClick.AddListener(async () =>
         {
             seatsTxt.Highlight = false;
 
             if (int.TryParse(seatsTxt.Value, out var seatsNumber) && seatsNumber > 0)
             {
-                APIWrapper.Instance.GameNew(seatsNumber, (response, error) =>
+                try
                 {
-                    if (error != null)
+                    var response = await APIWrapper.Instance.GameNew(seatsNumber);
+                    
+                    var game = Game.GetGame(response);
+                    GameManager.Instance.GoToLobby(game);
+                }
+                catch (BadResponseException e)
+                {
+                    var response = e.Response;
+                    
+                    if (response["error"] != null)
                     {
-                        if (response["error"] != null)
+                        Debug.Log((string) response["error"]["message"]);
+                    }
+                    else if (response["errors"] != null)
+                    {
+                        var errors = (JArray) response["errors"];
+                        foreach (var err in errors.Children())
                         {
-                            Debug.Log((string) response["error"]["message"]);
-                        }
-                        else if (response["errors"] != null)
-                        {
-                            JArray errors = (JArray) response["errors"];
-                            foreach (JToken err in errors.Children())
-                            {
-                                if ((string) err["msg"] != "Invalid value") continue;
+                            if ((string) err["msg"] != "Invalid value") continue;
                                 
-                                if ((string) err["param"] == "seats")
-                                {
-                                    seatsTxt.Highlight = true;
-                                }
+                            if ((string) err["param"] == "seats")
+                            {
+                                seatsTxt.Highlight = true;
                             }
                         }
                     }
-                    else
-                    {
-                        Game game = Game.GetGame(response);
-                        GameManager.Instance.GoToLobby(game);
-                    }
-                });
+                }
+                catch (Exception e)
+                {
+                    Debug.Log(e); // TODO: Show error to player
+                }
             }
             else
             {

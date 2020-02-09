@@ -6,18 +6,19 @@ public class Leave : MonoBehaviour
 {
     public SocketIo socketIo;
     
-    public void OnClick()
+    public async void OnClick()
     {
-        APIWrapper.Instance.GameLeave((response, error) =>
+        try
         {
+            await APIWrapper.Instance.GameLeave();
+            
             SceneManager.LoadScene("Home", LoadSceneMode.Single);
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e); // TODO: Show error to player
+        }
 
-            if (error != null && response["error"] == null)
-            {
-                throw new Exception(error);
-            }
-        });
-        
         socketIo.Close();
     }
 }

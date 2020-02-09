@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Route : MonoBehaviour
 {
-    private Transform[] childObjects;
+    private Transform[] _childObjects;
     public List<Transform> childNodeList = new List<Transform>();
 
     private void Start()
@@ -17,9 +15,9 @@ public class Route : MonoBehaviour
     {
         childNodeList.Clear();
 
-        childObjects = GetComponentsInChildren<Transform>();
+        _childObjects = GetComponentsInChildren<Transform>();
 
-        foreach (Transform child in childObjects)
+        foreach (var child in _childObjects)
         {
             if (child != transform)
             {

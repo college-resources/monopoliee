@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -15,54 +12,59 @@ public class Login : MonoBehaviour
 
     private void Awake()
     {
-        submit.Click += delegate(object sender, EventArgs args)
-        {
-            username.Highlight = false;
-            password.Highlight = false;
-            statusMessage.Value = "";
-            
-            AuthenticationManager.Instance.LoginFormSubmit(username.Value, password.Value, (response, error) =>
-            {
-                if (error != null)
-                {
-                    if (response["error"] != null)
-                    {
-                        statusMessage.Value = (string)response["error"]["message"];
-                    }
-                    else if (response["errors"] != null) 
-                    {
-                        StringBuilder sb = new StringBuilder();
-                        JArray errors = (JArray) response["errors"];
-                        foreach (JToken err in errors.Children())
-                        {
-                            if ((string)err["msg"] == "Invalid value")
-                            {
-                                if ((string) err["param"] == "username")
-                                {
-                                    username.Highlight = true;
-                                }
-                                else if ((string) err["param"] == "password")
-                                {
-                                    password.Highlight = true;
-                                }
-                                else
-                                {
-                                    sb.AppendLine((string) err["msg"]);
-                                }
-                            }
-                        }
+        submit.Click += SubmitClick;
+    }
+    
+    private async void SubmitClick(object sender, EventArgs args)
+    {
+        username.Highlight = false;
+        password.Highlight = false;
+        statusMessage.Value = "";
 
-                        if (sb.Length != 0)
-                        {
-                            statusMessage.Value = sb.ToString();
-                        }
-                    }
-                    else
+        try
+        {
+            await AuthenticationManager.Instance.LoginFormSubmit(username.Value, password.Value);
+        }
+        catch (BadResponseException e)
+        {
+            var response = e.Response;
+            
+            if (response["error"] != null)
+            {
+                statusMessage.Value = (string)response["error"]["message"];
+            }
+            else if (response["errors"] != null) 
+            {
+                var sb = new StringBuilder();
+                var errors = (JArray) response["errors"];
+                foreach (var err in errors.Children())
+                {
+                    if ((string)err["msg"] == "Invalid value")
                     {
-                        Debug.Log(error);
+                        switch ((string) err["param"])
+                        {
+                            case "username":
+                                username.Highlight = true;
+                                break;
+                            case "password":
+                                password.Highlight = true;
+                                break;
+                            default:
+                                sb.AppendLine((string) err["msg"]);
+                                break;
+                        }
                     }
                 }
-            });
-        };
+
+                if (sb.Length != 0)
+                {
+                    statusMessage.Value = sb.ToString();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e); // TODO: Show error to player
+        }
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using NativeWebSocket;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -234,30 +233,28 @@ public class SocketIo : MonoBehaviour
         await _websocket.Close();
     }
 
-    private Game GetCurrentGame()
+    private static Game GetCurrentGame()
     {
         return GameManager.Instance.Game;
     }
 
-    private IEnumerator Upload(string path, APIWrapper.APICallback callback = null)
+    private static IEnumerator Upload(string path, APIWrapper.APICallback callback = null)
     {
-        using (UnityWebRequest www = UnityWebRequest.Get(APIWrapper.HTTP_PROTOCOL + APIWrapper.URL + path))
-        {
-            yield return www.SendWebRequest();
+        using var www = UnityWebRequest.Get(APIWrapper.HTTP_PROTOCOL + APIWrapper.URL + path);
+        yield return www.SendWebRequest();
 
-            if (callback != null)
+        if (callback != null)
+        {
+            try
             {
-                try
-                {
-                    string resText = www.downloadHandler.text;
-                    string json = resText.Split(new[] {":0"}, StringSplitOptions.None)[1];
-                    JToken response = JToken.Parse(json);
-                    callback(response, www.error);
-                }
-                catch (JsonException ex)
-                {
-                    callback(null, ex.Message);
-                }
+                var resText = www.downloadHandler.text;
+                var json = resText.Split(new[] {":0"}, StringSplitOptions.None)[1];
+                var response = JToken.Parse(json);
+                callback(response, www.error);
+            }
+            catch (JsonException ex)
+            {
+                callback(null, ex.Message);
             }
         }
     }

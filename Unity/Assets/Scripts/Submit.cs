@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,7 +12,7 @@ public class Submit : MonoBehaviour
     {
         _button = GetComponent<Button>();
         _button.onClick.AddListener(delegate {
-            EventHandler handler = Click;
+            var handler = Click;
             handler?.Invoke(_button, null);
         });
     }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using Schema;
@@ -10,17 +10,18 @@ public class BuyProperty : MonoBehaviour
 {
     private GameObject _abandon;
     private GameObject _buy;
-    private GameObject _cards;
-    public GameObject CardLoader;
+    private GameObject _cards;ke
+    public GameObject cardLoader;
     private CardLoader _cardLoader;
     private List<GameObject> _cardsList;
-    void Start()
+    
+    private void Start()
     {
         _abandon = transform.Find("Abandon").gameObject;
         _buy = transform.Find("Buy").gameObject;
         _cards = transform.Find("Cards").gameObject;
         _cardsList = new List<GameObject>();
-        _cardLoader = CardLoader.GetComponent<CardLoader>();
+        _cardLoader = cardLoader.GetComponent<CardLoader>();
         foreach (Transform child in _cards.transform)
         {
             _cardsList.Add(child.gameObject);
@@ -119,35 +120,34 @@ public class BuyProperty : MonoBehaviour
     
     public void Abandon()
     {
-        StopCoroutine("DisplayCard");
+        StopCoroutine(nameof(DisplayCard));
         _abandon.SetActive(false);
         _buy.SetActive(false);
-        foreach (GameObject child in _cardsList)
+        foreach (var child in _cardsList)
         {
             child.SetActive(false);
         }
         _cards.SetActive(false);
     }
 
-    public void Buy()
+    public async void Buy()
     {
-        APIWrapper.Instance.TransactionBuyCurrentProperty((response, error) =>
+        try
         {
-            if (error != null)
+            await APIWrapper.Instance.TransactionBuyCurrentProperty();
+            
+            StopCoroutine(nameof(DisplayCard));
+            _abandon.SetActive(false);
+            _buy.SetActive(false);
+            foreach (var child in _cardsList)
             {
-                Debug.Log(error); 
+                child.SetActive(false);
             }
-            else
-            {
-                StopCoroutine("DisplayCard");
-                _abandon.SetActive(false);
-                _buy.SetActive(false);
-                foreach (GameObject child in _cardsList)
-                {
-                    child.SetActive(false);
-                }
-                _cards.SetActive(false);
-            }
-        });
+            _cards.SetActive(false);
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e); // TODO: Show error to player
+        }
     }
 }

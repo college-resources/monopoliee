@@ -43,18 +43,19 @@ public class PlayerMovement : MonoBehaviour
         _player.SetPosition(location);
     }
     
-    IEnumerator RotateMe(Vector3 byAngles, float inTime) 
-    {   
-        var fromAngle = transform.rotation;
-        var toAngle = Quaternion.Euler(transform.eulerAngles + byAngles);
-        for(var t = 0f; t <= 1; t += Time.deltaTime/inTime) {
+    private IEnumerator RotateMe(Vector3 byAngles, float inTime) 
+    {
+        var thisTransform = transform;
+        var fromAngle = thisTransform.rotation;
+        var toAngle = Quaternion.Euler(thisTransform.eulerAngles + byAngles);
+        for(var t = 0f; t <= 1; t += Time.deltaTime / inTime) {
             transform.rotation = Quaternion.Slerp(fromAngle, toAngle, t);
             yield return null;
         }
         transform.rotation = toAngle;
     }
 
-    bool Step(Vector3 goal)
+    private bool Step(Vector3 goal)
     {
         return goal != (transform.position = Vector3.MoveTowards(transform.position, goal, 5f * Time.deltaTime));
     }

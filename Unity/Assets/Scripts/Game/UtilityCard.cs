@@ -1,13 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class UtilityCard
+﻿public class UtilityCard
 {
     public string name;
     public int location;
     public int[] rents;
-    public int mortgage;
+    public readonly int mortgage;
 
     public UtilityCard(string name, int location, int[] rents, int mortgage)
     {

@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Schema;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -28,91 +27,61 @@ public class AuthenticationManager : MonoBehaviour
 
     public User user;
 
-    public void Start()
+    public async void Start()
     {
-        APIWrapper.Instance.AuthSession((response, error) =>
+        try
         {
-            if (error == null)
-            {
-                user = User.GetUser(response["user"]);
-                SceneManager.LoadScene("Home", LoadSceneMode.Single);
-            }
-            else
-            {
-                if (response["error"] == null)
-                {
-                    throw new Exception(error);
-                }
-            }
-        });
+            var response = await APIWrapper.Instance.AuthSession();
+            user = User.GetUser(response["user"]);
+            SceneManager.LoadScene("Home", LoadSceneMode.Single);
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e); // TODO: Show error to player
+        }
     }
 
-    public void LoginFormSubmit(string username, string password, APIWrapper.APICallback callback = null)
+    public async Task LoginFormSubmit(string username, string password)
     {
-        APIWrapper.Instance.AuthLogin(username, password, (response, error) =>
+        try
         {
-            if (error == null)
-            {
-                user = User.GetUser(response["user"]);
-                SceneManager.LoadScene("Home", LoadSceneMode.Single);
-            }
-            else
-            {
-                if (callback != null)
-                {
-                    callback(response, error);
-                }
-                else
-                {
-                    throw new Exception(error);
-                }
-            }
-        });
+            var response = await APIWrapper.Instance.AuthLogin(username, password);
+            user = User.GetUser(response["user"]);
+            SceneManager.LoadScene("Home", LoadSceneMode.Single);
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e); // TODO: Show error to player
+            throw;
+        }
     }
 
-    public void RegisterFormSubmit(string username, string password, APIWrapper.APICallback callback = null)
+    public async Task RegisterFormSubmit(string username, string password)
     {
-        APIWrapper.Instance.AuthRegister(username, password, (response, error) =>
+        try
         {
-            if (error == null)
-            {
-                user = User.GetUser(response["user"]);
-                SceneManager.LoadScene("Home", LoadSceneMode.Single);
-            }
-            else
-            {
-                if (callback != null)
-                {
-                    callback(response, error);
-                }
-                else
-                {
-                    throw new Exception(error);
-                }
-            }
-        });
+            var response = await APIWrapper.Instance.AuthRegister(username, password);
+            user = User.GetUser(response["user"]);
+            SceneManager.LoadScene("Home", LoadSceneMode.Single);
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e); // TODO: Show error to player
+            throw;
+        }
     }
 
-    public void Logout(APIWrapper.APICallback callback = null)
+    public async void Logout()
     {
-        APIWrapper.Instance.AuthLogout((response, error) =>
+        try
         {
-            if (error == null)
-            {
-                user = null;
-                SceneManager.LoadScene("Login", LoadSceneMode.Single);
-            }
-            else
-            {
-                if (callback != null)
-                {
-                    callback(response, error);
-                }
-                else
-                {
-                    throw new Exception(error);
-                }
-            }
-        });
+            await APIWrapper.Instance.AuthLogout();
+            user = null;
+            SceneManager.LoadScene("Login", LoadSceneMode.Single);
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e); // TODO: Show error to player
+        }
     }
 }

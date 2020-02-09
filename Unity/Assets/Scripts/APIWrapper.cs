@@ -1,6 +1,8 @@
 ﻿// #define MONOPOLIEE_PRODUCTION_MODE
 
+using System;
 using System.Collections;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -9,20 +11,21 @@ using UnityEngine.Networking;
 public class APIWrapper : MonoBehaviour
 {
     #region Singleton
-    public static APIWrapper Instance { get => _instance; }
+    public static APIWrapper Instance { get; private set; }
 
-    private static APIWrapper _instance;
-    
     private void Awake()
     {
-        if (_instance != null)
+        if (Instance != null)
         {
             Destroy(gameObject);
         }
         else
         {
-            _instance = this;
+            Instance = this;
             DontDestroyOnLoad(gameObject);
+            
+            _queue = new CoroutineQueue(this);
+            _queue.StartLoop();
         }
     }
     #endregion
@@ -37,41 +40,39 @@ public class APIWrapper : MonoBehaviour
     public const string URL = "localhost:3000/";
     #endif
 
-    private bool _locked = false;
+    private CoroutineQueue _queue;
 
     public delegate void APICallback(JToken response, string error = null);
-    
-    public void AuthLogin(string username, string password, APICallback callback = null)
+
+    public Task<JToken> AuthLogin(string username, string password)
     {
-        WWWForm form = new WWWForm();
+        var form = new WWWForm();
         form.AddField("username", username);
         form.AddField("password", password);
 
-        StartCoroutine(Upload("auth/login", form, callback));
+        return Upload("auth/login", form);
     }
 
-    public void AuthLogout(APICallback callback = null)
+    public Task<JToken> AuthLogout()
     {
-        StartCoroutine(Upload("auth/logout", null, callback));
+        return Upload("auth/logout", null);
     }
     
-    public void AuthRegister(string username, string password, APICallback callback = null)
+    public Task<JToken> AuthRegister(string username, string password)
     {
-        WWWForm form = new WWWForm();
+        var form = new WWWForm();
         form.AddField("username", username);
         form.AddField("password", password);
 
-        StartCoroutine(Upload("auth/register", form, callback));
+        return Upload("auth/register", form);
     }
 
-    public void AuthSession(APICallback callback = null)
+    public Task<JToken> AuthSession()
     {
-        StartCoroutine(Upload("auth/session", null, callback));
+        return Upload("auth/session", null);
     }
-    
-    public void GameNew(int seats, APICallback callback = null) => GameNew(seats, false, callback);
 
-    public void GameNew(int seats, bool inviteOnly, APICallback callback = null)
+    public Task<JToken> GameNew(int seats, bool inviteOnly = false)
     {
         WWWForm form = new WWWForm();
         form.AddField("seats", seats);
@@ -80,12 +81,10 @@ public class APIWrapper : MonoBehaviour
             form.AddField("invite_only", "true");
         }
 
-        StartCoroutine(Upload("game/new", form, callback));
+        return Upload("game/new", form);
     }
 
-    public void GameJoin(string gameId, APICallback callback = null) => GameJoin(gameId, "", callback);
-
-    public void GameJoin(string gameId, string invitationCode, APICallback callback = null)
+    public Task<JToken> GameJoin(string gameId, string invitationCode = "")
     {
         WWWForm form = new WWWForm();
         form.AddField("game_id", gameId);
@@ -94,71 +93,86 @@ public class APIWrapper : MonoBehaviour
             form.AddField("invitation_code", invitationCode);
         }
 
-        StartCoroutine(Upload("game/join", form, callback));
+        return Upload("game/join", form);
     }
 
-    public void GameList(APICallback callback = null)
+    public Task<JToken> GameList()
     {
-        StartCoroutine(Upload("game/list", null, callback));
+        return Upload("game/list", null);
     }
 
-    public void GameCurrent(APICallback callback = null)
+    public Task<JToken> GameCurrent()
     {
-        StartCoroutine(Upload("game/current", null, callback));
+        return Upload("game/current", null);
     }
     
-    public void GameLeave(APICallback callback = null)
+    public Task<JToken> GameLeave()
     {
-        StartCoroutine(Upload("game/leave", null, callback));
+        return Upload("game/leave", null);
     }
     
-    public void GamePrices(APICallback callback = null)
+    public Task<JToken> GamePrices()
     {
-        StartCoroutine(Upload("game/prices", null, callback));
+        return Upload("game/prices", null);
     }
     
-    public void PlayerRollDice(APICallback callback = null)
+    public Task<JToken> PlayerRollDice()
     {
-        StartCoroutine(Upload("player/roll-dice", null, callback));
+        return Upload("player/roll-dice", null);
     }
     
-    public void PlayerEndTurn(APICallback callback = null)
+    public Task<JToken> PlayerEndTurn()
     {
-        StartCoroutine(Upload("player/end-turn", null, callback));
+        return Upload("player/end-turn", null);
     }
     
-    public void TransactionBuyCurrentProperty(APICallback callback = null)
+    public Task<JToken> TransactionBuyCurrentProperty()
     {
-        StartCoroutine(Upload("transaction/buy-current-property", null, callback));
+        return Upload("transaction/buy-current-property", null);
     }
 
-    private IEnumerator Upload(string path, WWWForm form = null, APICallback callback = null)
+    private Task<JToken> Upload(string path, WWWForm form = null)
     {
-        if (_locked) yield return null;
-
-        _locked = true;
+        var t = new TaskCompletionSource<JToken>();
         
-        using (UnityWebRequest www = 
+        _queue.EnqueueAction(Upload(path, form, (response, error) =>
+        {
+            if (error != null && response != null)
+            {
+                t.TrySetException(new BadResponseException(error, response));
+            }
+            else if (error != null)
+            {
+                t.TrySetException(new Exception(error));
+            }
+            else
+            {
+                t.TrySetResult(response);
+            }
+        }));
+        
+        return Task.Run(() => t.Task);
+    }
+    
+    private static IEnumerator Upload(string path, WWWForm form = null, APICallback callback = null)
+    {
+        var www = 
             form == null 
                 ? UnityWebRequest.Get(HTTP_PROTOCOL + URL + path)
-                : UnityWebRequest.Post(HTTP_PROTOCOL + URL + path, form))
+                : UnityWebRequest.Post(HTTP_PROTOCOL + URL + path, form);
+        yield return www.SendWebRequest();
+
+        if (callback != null)
         {
-            yield return www.SendWebRequest();
-
-            _locked = false;
-
-            if (callback != null)
+            try
             {
-                try
-                {
-                    string resText = www.downloadHandler.text;
-                    JToken response = JToken.Parse(resText);
-                    callback(response, www.error);
-                }
-                catch (JsonException ex)
-                {
-                    callback(null, ex.Message);
-                }
+                var resText = www.downloadHandler.text;
+                var response = JToken.Parse(resText);
+                callback(response, www.error);
+            }
+            catch (JsonException ex)
+            {
+                callback(null, ex.Message);
             }
         }
     }

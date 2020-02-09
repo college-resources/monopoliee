@@ -157,21 +157,14 @@ public class CurrentGame : MonoBehaviour
     {
         var currentPlayerIndex = player.Index;
 
-        switch (currentPlayerIndex)
+        nowPlayingPlayer.transform.localPosition = currentPlayerIndex switch
         {
-            case 0:
-                nowPlayingPlayer.transform.localPosition = new Vector3(-720, 0 , 0);
-                break;
-            case 1:
-                nowPlayingPlayer.transform.localPosition = new Vector3(-240, 0 , 0);
-                break;
-            case 2:
-                nowPlayingPlayer.transform.localPosition = new Vector3(240, 0 , 0);
-                break;
-            case 3:
-                nowPlayingPlayer.transform.localPosition = new Vector3(720, 0 , 0);
-                break;
-        }
+            0 => new Vector3(-720, 0, 0),
+            1 => new Vector3(-240, 0, 0),
+            2 => new Vector3(240, 0, 0),
+            3 => new Vector3(720, 0, 0),
+            _ => nowPlayingPlayer.transform.localPosition
+        };
     }
     
     private void UpdateBottomBar()

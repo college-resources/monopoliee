@@ -6,17 +6,17 @@ public class CameraController : MonoBehaviour
 {
     private Game _game;
     public List<GameObject> cameraList;
-    public CurrentGame currentGame;
+    private CurrentGame _currentGame;
 
     private void Start()
     {
-        currentGame = GameObject.Find("CurrentGame").GetComponent<CurrentGame>();
+        _currentGame = GameObject.Find("CurrentGame").GetComponent<CurrentGame>();
         _game = GameManager.Instance.Game;
     }
 
     public void SetUpCameras()
     {
-        foreach (GameObject player in currentGame.playerList)
+        foreach (var player in _currentGame.playerList)
         {
             cameraList.Add(player.transform.Find("VirtualCamera").gameObject);
         }
@@ -36,7 +36,7 @@ public class CameraController : MonoBehaviour
 
     public void FocusCameraOn(Player player)
     {
-        for (int i = 0; i < cameraList.Count; i++)
+        for (var i = 0; i < cameraList.Count; i++)
         {
             cameraList[i].gameObject.SetActive(i == player.Index);
         }

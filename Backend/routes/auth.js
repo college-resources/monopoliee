@@ -14,7 +14,7 @@ module.exports = router
 router.get('/session', (req, res) => {
   SocketManager.updateSocketsUserFromSession(req.sessionID,
     req.session.user && req.session.user._id)
-  
+
   if (req.session.user) {
     return res.json({
       user: req.session.user,

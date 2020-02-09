@@ -1,18 +1,17 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Taxes : MonoBehaviour
 {
-    private TextMesh[] prices;
+    private TextMesh[] _prices;
     public List<TextMesh> pricesList = new List<TextMesh>();
 
     private void Start()
     {
         pricesList.Clear();
 
-        prices = GetComponentsInChildren<TextMesh>();
-        foreach (TextMesh textMesh in prices)
+        _prices = GetComponentsInChildren<TextMesh>();
+        foreach (var textMesh in _prices)
         {
             pricesList.Add(textMesh);
         }

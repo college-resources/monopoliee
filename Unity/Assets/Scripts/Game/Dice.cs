@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -17,17 +18,18 @@ public class Dice : MonoBehaviour {
         _diceSides = Resources.LoadAll<Sprite>("DiceSides/");
     }
 
-    private void Update()
+    private async void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            APIWrapper.Instance.PlayerRollDice((response, error) =>
+            try
             {
-                if (error != null)
-                {
-                    Debug.Log(error); // TODO: Show error to player
-                }
-            });
+                await APIWrapper.Instance.PlayerRollDice();
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e); // TODO: Show error to player
+            }
         }
     }
     

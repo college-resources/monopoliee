@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using Schema;
@@ -13,35 +14,38 @@ public class LoadGames : MonoBehaviour
     public GameObject contentDataPanel;
     public GameObject errorText;
     
-    private void Start()
+    private async void Start()
     {
         ClearErrorText();
-        
-        APIWrapper.Instance.GameCurrent((response, error) =>
-        {
-            if (error == null)
-            {
-                Game.ClearCache();
-                var gameToJoin = Game.GetGame(response);
 
-                if (gameToJoin.Status == "waitingPlayers")
-                {
-                    GameManager.Instance.GoToLobby(gameToJoin);
-                }
-                else if (gameToJoin.Status == "running")
-                {
-                    GameManager.Instance.GoToGame(gameToJoin);
-                }
-                else
-                {
-                    Debug.Log("Unknown status: " + gameToJoin.Status);
-                }
-            }
-            else
+        try
+        {
+            var response = await APIWrapper.Instance.GameCurrent();
+            
+            Game.ClearCache();
+            var gameToJoin = Game.GetGame(response);
+
+            switch (gameToJoin.Status)
             {
-                LoadGameList();
+                case "waitingPlayers":
+                    GameManager.Instance.GoToLobby(gameToJoin);
+                    break;
+                case "running":
+                    GameManager.Instance.GoToGame(gameToJoin);
+                    break;
+                default:
+                    Debug.Log("Unknown status: " + gameToJoin.Status);
+                    break;
             }
-        });
+        }
+        catch (BadResponseException)
+        {
+            LoadGameList();
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e); // TODO: Show error to player
+        }
     }
 
     private void Initialize()
@@ -62,29 +66,9 @@ public class LoadGames : MonoBehaviour
                 
                 if (game.Status == "waitingPlayers")
                 {
-                    playerTextPanel.transform.Find("WaitingText").GetComponent<TextMeshProUGUI>().text = "Waiting for players " + game.SeatsToString();                    
-                    
-                    playerTextPanel.transform.Find("Join").GetComponent<Submit>().Click += (sender, args) =>
-                    {
-                        APIWrapper.Instance.GameJoin(game.Id, (response, error) =>
-                        {
-                            if (error != null)
-                            {
-                                if (response["error"] == null) return;
+                    playerTextPanel.transform.Find("WaitingText").GetComponent<TextMeshProUGUI>().text = "Waiting for players " + game.SeatsToString();
 
-                                var errorMessage = (string) response["error"]["message"];
-
-                                Debug.Log(errorMessage);
-                                errorText.transform.GetComponent<TextMeshProUGUI>().text = errorMessage;
-                            }
-                            else
-                            {
-                                Game.ClearCache();
-                                var gameToJoin = Game.GetGame(response);
-                                GameManager.Instance.GoToLobby(gameToJoin);
-                            }
-                        });
-                    };
+                    playerTextPanel.transform.Find("Join").GetComponent<Submit>().Click += JoinClick(game);
                 }
                 else
                 {
@@ -99,28 +83,55 @@ public class LoadGames : MonoBehaviour
         }
     }
     
-    public void LoadGameList()
+    public async void LoadGameList()
     {
         ClearErrorText();
         
-        APIWrapper.Instance.GameList((response, error) =>
+        try
         {
-            if (error == null)
+            var response = await APIWrapper.Instance.GameList();
+            
+            Game.ClearCache();
+            
+            var games = (JArray) response;
+            gameList = new List<Game>(games.Count);
+            foreach (var game in games)
             {
+                gameList.Add(Game.GetGame(game));
+            }
+            
+            Initialize();
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e);
+        }
+    }
+    
+    private EventHandler JoinClick(Game game)
+    {
+        return async (sender, args) =>
+        {
+            try
+            {
+                var response = await APIWrapper.Instance.GameJoin(game.Id);
+                
                 Game.ClearCache();
-                var games = (JArray) response;
-                gameList = new List<Game>(games.Count);
-                foreach (var game in games)
-                {
-                    gameList.Add(Game.GetGame(game));
-                }
-                Initialize();
+                var gameToJoin = Game.GetGame(response);
+                GameManager.Instance.GoToLobby(gameToJoin);
             }
-            else
+            catch (BadResponseException e)
             {
-                Debug.Log(error);
+                var errorMessage = (string) e.Response["error"]["message"];
+
+                Debug.Log(errorMessage);
+                errorText.transform.GetComponent<TextMeshProUGUI>().text = errorMessage;
             }
-        });
+            catch (Exception e)
+            {
+                Debug.Log(e); // TODO: Show error to player
+            }
+        };
     }
 
     private void ClearErrorText()

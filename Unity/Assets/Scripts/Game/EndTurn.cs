@@ -1,15 +1,17 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class EndTurn : MonoBehaviour
 {
-    public void OnClick()
+    public async void OnClick()
     {
-        APIWrapper.Instance.PlayerEndTurn((response, error) =>
+        try
         {
-            if (error != null)
-            {
-                Debug.Log(error); // TODO: Show error to player
-            }
-        });
+            await APIWrapper.Instance.PlayerEndTurn();
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e);
+        }
     }
 }
