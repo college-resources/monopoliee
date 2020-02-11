@@ -29,6 +29,33 @@ module.exports = [
     }
   },
   {
+    text: 'Πήγαινε στο Τμήμα Βιοϊατρικών Επιστημών. Αν περάσεις την αφετηρία πάρε 200ΔΜ.',
+    action: async (userId, gameHolder) => {
+      const targetPropertyLocation = 11
+
+      const currentGame = gameHolder.getJSON()
+      const player = currentGame.players.find(p => p.user.toString() === userId.toString())
+
+      const game = await Game.findById(currentGame._id)
+      const gamePlayer = game.players.find(p => p.user.toString() === userId.toString())
+
+      gameHolder.getPlayerEvents().onPlayerMoved(player.user, targetPropertyLocation)
+
+      if (player.position > targetPropertyLocation) {
+        gamePlayer.balance += 200
+
+        gameHolder.getPlayerEvents().onPlayerPassedFromGo(player.user)
+        gameHolder.getPlayerEvents().onPlayerGotPaid(player.user, 200)
+        gameHolder.getPlayerEvents().onPlayerBalanceChanged(player.user, gamePlayer.balance)
+      }
+
+      gamePlayer.position = targetPropertyLocation
+
+      await game.save()
+      await gameHolder.update()
+    }
+  },
+  {
     text: 'Δώσε εξεταστική. Μην περάσεις από την αφετηρία, μην πάρεις 200ΔΜ.',
     action: async (userId, gameHolder) => {
       gameHolder.getPlayerEvents().onPlayerGotJailed(userId)
@@ -55,6 +82,85 @@ module.exports = [
           }
         })
       }
+      await game.save()
+      await gameHolder.update()
+    }
+  },
+  {
+    text: 'Πάρε το 52 από τη Στάση ΝΣΣ.',
+    action: async (userId, gameHolder) => {
+      const targetPropertyLocation = 5
+
+      const currentGame = gameHolder.getJSON()
+      const player = currentGame.players.find(p => p.user.toString() === userId.toString())
+
+      const game = await Game.findById(currentGame._id)
+      const gamePlayer = game.players.find(p => p.user.toString() === userId.toString())
+
+      gameHolder.getPlayerEvents().onPlayerMoved(player.user, targetPropertyLocation)
+
+      if (player.position > targetPropertyLocation) {
+        gamePlayer.balance += 200
+
+        gameHolder.getPlayerEvents().onPlayerPassedFromGo(player.user)
+        gameHolder.getPlayerEvents().onPlayerGotPaid(player.user, 200)
+        gameHolder.getPlayerEvents().onPlayerBalanceChanged(player.user, gamePlayer.balance)
+      }
+
+      gamePlayer.position = targetPropertyLocation
+
+      await game.save()
+      await gameHolder.update()
+    }
+  },
+  {
+    text: 'Πήγαινε βόλτα στο Τμήμα Νοσηλευτικής.',
+    action: async (userId, gameHolder) => {
+      const targetPropertyLocation = 39
+
+      const currentGame = gameHolder.getJSON()
+      const player = currentGame.players.find(p => p.user.toString() === userId.toString())
+
+      const game = await Game.findById(currentGame._id)
+      const gamePlayer = game.players.find(p => p.user.toString() === userId.toString())
+
+      gameHolder.getPlayerEvents().onPlayerMoved(player.user, targetPropertyLocation)
+
+      if (player.position > targetPropertyLocation) {
+        gamePlayer.balance += 200
+
+        gameHolder.getPlayerEvents().onPlayerPassedFromGo(player.user)
+        gameHolder.getPlayerEvents().onPlayerGotPaid(player.user, 200)
+        gameHolder.getPlayerEvents().onPlayerBalanceChanged(player.user, gamePlayer.balance)
+      }
+
+      gamePlayer.position = targetPropertyLocation
+
+      await game.save()
+      await gameHolder.update()
+    }
+  },
+  {
+    text: 'Πήγαινε στην αφετηρία (Πάρε 200ΔΜ).',
+    action: async (userId, gameHolder) => {
+      const targetLocation = 0
+
+      const currentGame = gameHolder.getJSON()
+      const player = currentGame.players.find(p => p.user.toString() === userId.toString())
+
+      const game = await Game.findById(currentGame._id)
+      const gamePlayer = game.players.find(p => p.user.toString() === userId.toString())
+
+      gameHolder.getPlayerEvents().onPlayerMoved(player.user, targetLocation)
+
+      gamePlayer.balance += 200
+
+      gameHolder.getPlayerEvents().onPlayerPassedFromGo(player.user)
+      gameHolder.getPlayerEvents().onPlayerGotPaid(player.user, 200)
+      gameHolder.getPlayerEvents().onPlayerBalanceChanged(player.user, gamePlayer.balance)
+
+      gamePlayer.position = targetLocation
+
       await game.save()
       await gameHolder.update()
     }
