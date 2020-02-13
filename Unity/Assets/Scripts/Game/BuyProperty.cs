@@ -8,24 +8,29 @@ using UnityEngine.UI;
 
 public class BuyProperty : MonoBehaviour
 {
+    // Buttons
     private GameObject _abandon;
     private GameObject _buy;
-    private GameObject _cards;
+    
+    // UI Cards
+    private GameObject _uiCards;
+    private List<GameObject> _uiCardsList;
+    
+    // Card Data
     public GameObject cardLoader;
     private CardLoader _cardLoader;
-    private List<GameObject> _cardsList;
-    
+
     private void Start()
     {
         _abandon = transform.Find("Abandon").gameObject;
         _buy = transform.Find("Buy").gameObject;
-        _cards = transform.Find("Cards").gameObject;
-        _cardsList = new List<GameObject>();
-        _cardLoader = cardLoader.GetComponent<CardLoader>();
-        foreach (Transform child in _cards.transform)
+        _uiCards = transform.Find("Cards").gameObject;
+        _uiCardsList = new List<GameObject>();
+        foreach (Transform child in _uiCards.transform)
         {
-            _cardsList.Add(child.gameObject);
+            _uiCardsList.Add(child.gameObject);
         }
+        _cardLoader = cardLoader.GetComponent<CardLoader>();
     }
 
     public IEnumerator DisplayCard(int location)
@@ -37,113 +42,133 @@ public class BuyProperty : MonoBehaviour
             _abandon.SetActive(true);
         }
         
-        if (location == 5 || location == 15 || location == 25 || location == 35)
+        switch (location)
         {
-            List<StationCard> stationCards = _cardLoader.stationsList;
-            StationCard stationCard = stationCards[0];
-            foreach (StationCard card in stationCards)
+            // Stations
+            case 5:
+            case 15:
+            case 25:
+            case 35:
             {
-                if (card.location == location)
-                { 
-                    stationCard = card;
-                }
-            }
-            _cards.SetActive(true);
-            GameObject stCard = _cardsList[1];
-            stCard.SetActive(true);
-            stCard.transform.Find("Name").gameObject.GetComponent<TextMeshProUGUI>().text = stationCard.name;
-            for (int i = 0; i < stationCard.rents.Length; i++)
-            {
-                stCard.transform.Find("Rent" + i).gameObject.GetComponent<TextMeshProUGUI>().text =
-                    stationCard.rents[i].ToString();
-            }
-            stCard.transform.Find("MortgageText").gameObject.GetComponent<TextMeshProUGUI>().text = stationCard.mortgage.ToString();
-        }
-        else if (location == 12)
-        {
-            List<UtilityCard> utilityCards = _cardLoader.utilitiesList;
-            UtilityCard utilityCard = utilityCards[0];
-            _cards.SetActive(true);
-            GameObject uCard1 = _cardsList[2];
-            uCard1.SetActive(true);
-            uCard1.transform.Find("MortgageText").gameObject.GetComponent<TextMeshProUGUI>().text = utilityCard.mortgage.ToString();
-        }
-        else if (location == 28)
-        {
-            List<UtilityCard> utilityCards = _cardLoader.utilitiesList;
-            UtilityCard utilityCard = utilityCards[0];
-            _cards.SetActive(true);
-            GameObject uCard2 = _cardsList[3];
-            uCard2.SetActive(true);
-            uCard2.transform.Find("MortgageText").gameObject.GetComponent<TextMeshProUGUI>().text = utilityCard.mortgage.ToString();
-        }
-        else
-        {
-            List<PropertyCard> propertyCards = _cardLoader.propertiesList;
-            PropertyCard propertyCard = propertyCards[0];
-            foreach (PropertyCard card in propertyCards)
-            {
-                if (card.location == location)
-                { 
-                    propertyCard = card;
-                }
-            }
-            _cards.SetActive(true);
-            foreach (GameObject card in _cardsList)
-            {
-                if (card.name != "PropertyCard")
+                // Get the right data
+                var stationCards = _cardLoader.stationsList;
+                var stationCard = stationCards[0];
+                foreach (var card in stationCards)
                 {
-                    card.SetActive(false);
-                }
-                else
-                {
-                    card.SetActive(true);
-                    Color color;
-                    ColorUtility.TryParseHtmlString("#" + propertyCard.color, out color);
-                    card.transform.Find("Colour").gameObject.GetComponent<Image>().color = color;
-                    card.transform.Find("Name").gameObject.GetComponent<TextMeshProUGUI>().text = propertyCard.name;
-                    for (int i = 0; i < propertyCard.rents.Length; i++)
+                    if (card.location == location)
                     {
-                        card.transform.Find("Rent" + i).gameObject.GetComponent<TextMeshProUGUI>().text =
-                            propertyCard.rents[i].ToString();
+                        stationCard = card;
                     }
-                    card.transform.Find("BookCostText").gameObject.GetComponent<TextMeshProUGUI>().text = propertyCard.houseCost.ToString();
-                    card.transform.Find("DegreeCostText").gameObject.GetComponent<TextMeshProUGUI>().text =
-                        propertyCard.houseCost.ToString();
-                    card.transform.Find("MortgageText").gameObject.GetComponent<TextMeshProUGUI>().text = propertyCard.mortgage.ToString();
                 }
+
+                // Display the data on the card
+                _uiCards.SetActive(true);
+                var uiStationCard = _uiCardsList[1];
+                uiStationCard.SetActive(true);
+                uiStationCard.transform.Find("Name").gameObject.GetComponent<TextMeshProUGUI>().text = stationCard.name;
+                for (var i = 0; i < stationCard.rents.Length; i++)
+                {
+                    uiStationCard.transform.Find("Rent" + i).gameObject.GetComponent<TextMeshProUGUI>().text =
+                        stationCard.rents[i].ToString();
+                }
+                uiStationCard.transform.Find("MortgageText").gameObject.GetComponent<TextMeshProUGUI>().text = stationCard.mortgage.ToString();
+                break;
+            }
+            // First Utility
+            case 12:
+            {
+                // Get the right data
+                var utilityCards = _cardLoader.utilitiesList;
+                var utilityCard = utilityCards[0];
+                
+                // Display the data on the card
+                _uiCards.SetActive(true);
+                var uiUtilityCard1 = _uiCardsList[2];
+                uiUtilityCard1.SetActive(true);
+                uiUtilityCard1.transform.Find("MortgageText").gameObject.GetComponent<TextMeshProUGUI>().text = utilityCard.mortgage.ToString();
+                break;
+            }
+            // Second Utility
+            case 28:
+            {
+                // Get the right data
+                var utilityCards = _cardLoader.utilitiesList;
+                var utilityCard = utilityCards[0];
+                
+                // Display the data on the card
+                _uiCards.SetActive(true);
+                var uiUtilityCard2 = _uiCardsList[3];
+                uiUtilityCard2.SetActive(true);
+                uiUtilityCard2.transform.Find("MortgageText").gameObject.GetComponent<TextMeshProUGUI>().text = utilityCard.mortgage.ToString();
+                break;
+            }
+            // Generic Property
+            default:
+            {
+                // Get the right data
+                var propertyCards = _cardLoader.propertiesList;
+                var propertyCard = propertyCards[0];
+                foreach (var card in propertyCards)
+                {
+                    if (card.location == location)
+                    { 
+                        propertyCard = card;
+                    }
+                }
+                
+                // Display the data on the card
+                _uiCards.SetActive(true);
+                foreach (var card in _uiCardsList)
+                {
+                    if (card.name != "PropertyCard")
+                    {
+                        card.SetActive(false);
+                    }
+                    else
+                    {
+                        card.SetActive(true);
+                        Color color;
+                        ColorUtility.TryParseHtmlString("#" + propertyCard.color, out color);
+                        card.transform.Find("Colour").gameObject.GetComponent<Image>().color = color;
+                        card.transform.Find("Name").gameObject.GetComponent<TextMeshProUGUI>().text = propertyCard.name;
+                        for (var i = 0; i < propertyCard.rents.Length; i++)
+                        {
+                            card.transform.Find("Rent" + i).gameObject.GetComponent<TextMeshProUGUI>().text =
+                                propertyCard.rents[i].ToString();
+                        }
+                        card.transform.Find("BookCostText").gameObject.GetComponent<TextMeshProUGUI>().text = propertyCard.houseCost.ToString();
+                        card.transform.Find("DegreeCostText").gameObject.GetComponent<TextMeshProUGUI>().text =
+                            propertyCard.houseCost.ToString();
+                        card.transform.Find("MortgageText").gameObject.GetComponent<TextMeshProUGUI>().text = propertyCard.mortgage.ToString();
+                    }
+                }
+                break;
             }
         }
         yield return new WaitForSeconds(5f);
         Abandon();
     }
-    
-    public void Abandon()
+
+    private void Abandon()
     {
         StopCoroutine(nameof(DisplayCard));
         _abandon.SetActive(false);
         _buy.SetActive(false);
-        foreach (var child in _cardsList)
+        foreach (var child in _uiCardsList)
         {
             child.SetActive(false);
         }
-        _cards.SetActive(false);
+        _uiCards.SetActive(false);
     }
 
+    // Called by the Buy button
     public async void Buy()
     {
         try
         {
             await APIWrapper.Instance.TransactionBuyCurrentProperty();
             
-            StopCoroutine(nameof(DisplayCard));
-            _abandon.SetActive(false);
-            _buy.SetActive(false);
-            foreach (var child in _cardsList)
-            {
-                child.SetActive(false);
-            }
-            _cards.SetActive(false);
+            Abandon();
         }
         catch (Exception e)
         {
