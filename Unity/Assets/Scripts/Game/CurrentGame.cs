@@ -7,29 +7,36 @@ using UnityEngine.UI;
 
 public class CurrentGame : MonoBehaviour
 {
-    private CoroutineQueue _queue;
-    private CameraController _cameraController;
-    public SocketIo socketIo;
-    public GameObject ownedProperties;
-    public GameObject bottomBar;
-    public TextMeshProUGUI statusMessage;
-    public GameObject[] playerPrefabs = new GameObject[4];
-    public Route route;
-    public GameObject players;
-    public GameObject nowPlayingPlayer;
     public Dice diceContainer;
+    public GameObject bottomBar;
     public GameObject chanceCard;
     public GameObject communityChestCard;
+    public GameObject nowPlayingPlayer;
+    public GameObject ownedProperties;
+    public GameObject players;
+    public GameObject[] playerPrefabs = new GameObject[4];
+    public List<GameObject> playerList;
+    public Route route;
+    public SocketIo socketIo;
+    public TextMeshProUGUI statusMessage;
+    
     private BuyProperty _buyProperty;
+    private CameraController _cameraController;
+    private CoroutineQueue _queue;
 
-    private readonly Vector3[] _offsets = {
+    private static readonly Vector3[] BottomBarPlayerDisplays = {
+            new Vector3(-720, 0, 0),
+            new Vector3(-240, 0, 0),
+            new Vector3(240, 0, 0),
+            new Vector3(720, 0, 0)
+        };
+    
+    private static readonly Vector3[] Offsets = {
         new Vector3(0.15f, 0, 0.15f),
         new Vector3(-0.15f, 0, 0.15f), 
         new Vector3(0.15f, 0, -0.15f),
         new Vector3(-0.15f, 0, -0.15f)
     };
-    
-    public List<GameObject> playerList;
 
     private void Start()
     {
@@ -147,34 +154,16 @@ public class CurrentGame : MonoBehaviour
 
     private void AddPlayer(Player player)
     {
-        var playerPos = route.childNodeList[player.Position].transform.position + _offsets[player.Index];
+        var playerPos = route.childNodeList[player.Position].transform.position + Offsets[player.Index];
         var playerRotation = new Vector3(0, player.Position / 10 * 90, 0);
         var newPlayer = Instantiate(playerPrefabs[player.Index], playerPos, Quaternion.Euler(playerRotation), players.transform);
-        newPlayer.GetComponent<PlayerMovement>().offset = _offsets[player.Index];
+        newPlayer.GetComponent<PlayerMovement>().offset = Offsets[player.Index];
     }
 
     private void UpdateBottomBarPlayerPlaying(Player player)
     {
         var currentPlayerIndex = player.Index;
-
-        switch (currentPlayerIndex)
-        {
-            case 0:
-                nowPlayingPlayer.transform.localPosition = new Vector3(-720, 0, 0);
-                break;
-            case 1:
-                nowPlayingPlayer.transform.localPosition = new Vector3(-240, 0, 0);
-                break;
-            case 2:
-                nowPlayingPlayer.transform.localPosition = new Vector3(240, 0, 0);
-                break;
-            case 3:
-                nowPlayingPlayer.transform.localPosition = new Vector3(720, 0, 0);
-                break;
-            default:
-                nowPlayingPlayer.transform.localPosition = nowPlayingPlayer.transform.localPosition;
-                break;
-        }
+        nowPlayingPlayer.transform.localPosition = BottomBarPlayerDisplays[currentPlayerIndex];
     }
     
     private void UpdateBottomBar()
