@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Linq;
 using System.Text;
 using NativeWebSocket;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Schema;
+using UniRx.Async;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -23,8 +22,6 @@ public delegate void OnPropertyOwnerChanged(int propertyIndex, string ownerId);
 
 public class SocketIo : MonoBehaviour
 {
-    private delegate void ApiCallback(JToken response, string error = null);
-    
     private WebSocket _websocket;
     private bool _closed;
     public event OnPlayerJoined PlayerJoined;
@@ -39,12 +36,12 @@ public class SocketIo : MonoBehaviour
     public event OnPlayerSteppedOnCommunityChest PlayerSteppedOnCommunityChest;
     public event OnPropertyOwnerChanged PropertyOwnerChanged;
     
-    private void Start()
+    private async void Start()
     {
-        StartCoroutine(Upload("socket.io/?EIO=3&transport=polling", async (response, error) =>
+        try
         {
-            if (error != null) return;
-            
+            var response = await Upload("socket.io/?EIO=3&transport=polling");
+
             var sid = (string) response["sid"];
 
             _websocket = new WebSocket(ApiWrapper.WS_PROTOCOL + ApiWrapper.URL + "socket.io/?EIO=3&transport=websocket&sid=" + sid);
@@ -190,7 +187,7 @@ public class SocketIo : MonoBehaviour
                 }
                 catch (Exception e)
                 {
-                    Debug.Log(e.Message);
+                    Debug.Log(e);
                 }
             };
 
@@ -199,7 +196,11 @@ public class SocketIo : MonoBehaviour
             
             // Waiting for messages
             await _websocket.Connect();
-        }));
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e);
+        }
     }
     
     private void OnDestroy()
@@ -226,7 +227,7 @@ public class SocketIo : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.Log(e.Message);
+            Debug.Log(e);
         }
     }
 
@@ -239,25 +240,26 @@ public class SocketIo : MonoBehaviour
     {
         return GameManager.Instance.Game;
     }
+    
+    private static async UniTask<string> GetTextAsync(UnityWebRequest req)
+    {
+        var op = await req.SendWebRequest();
+        return op.downloadHandler.text;
+    }
 
-    private static IEnumerator Upload(string path, ApiCallback callback = null)
+    private static async UniTask<JToken> Upload(string path)
     {
         var www = UnityWebRequest.Get(ApiWrapper.HTTP_PROTOCOL + ApiWrapper.URL + path);
-        yield return www.SendWebRequest();
-
-        if (callback != null)
+        
+        var resText = await GetTextAsync(www);
+        var json = resText.Split(new[] {":0"}, StringSplitOptions.None)[1];
+        var response = JToken.Parse(json);
+        
+        if (www.error != null)
         {
-            try
-            {
-                var resText = www.downloadHandler.text;
-                var json = resText.Split(new[] {":0"}, StringSplitOptions.None)[1];
-                var response = JToken.Parse(json);
-                callback(response, www.error);
-            }
-            catch (JsonException ex)
-            {
-                callback(null, ex.Message);
-            }
+            throw new BadResponseException(www.error, response);
         }
+        
+        return response;
     }
 }
