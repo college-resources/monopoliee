@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using AOT;
 
 namespace NativeWebSocket
 {

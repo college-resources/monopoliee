@@ -1,10 +1,7 @@
 ﻿// #define MONOPOLIEE_PRODUCTION_MODE
 
-using System;
-using System.Collections;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UniRx.Async;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -23,9 +20,6 @@ public class APIWrapper : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            
-            _queue = new CoroutineQueue(this);
-            _queue.StartLoop();
         }
     }
     #endregion
@@ -40,39 +34,37 @@ public class APIWrapper : MonoBehaviour
     public const string URL = "localhost:3000/";
     #endif
 
-    private CoroutineQueue _queue;
-
     public delegate void APICallback(JToken response, string error = null);
 
-    public Task<JToken> AuthLogin(string username, string password)
+    public async UniTask<JToken> AuthLogin(string username, string password)
     {
         var form = new WWWForm();
         form.AddField("username", username);
         form.AddField("password", password);
 
-        return Upload("auth/login", form);
+        return await Upload("auth/login", form);
     }
 
-    public Task<JToken> AuthLogout()
+    public async UniTask<JToken> AuthLogout()
     {
-        return Upload("auth/logout", null);
+        return await Upload("auth/logout");
     }
     
-    public Task<JToken> AuthRegister(string username, string password)
+    public async UniTask<JToken> AuthRegister(string username, string password)
     {
         var form = new WWWForm();
         form.AddField("username", username);
         form.AddField("password", password);
 
-        return Upload("auth/register", form);
+        return await Upload("auth/register", form);
     }
 
-    public Task<JToken> AuthSession()
+    public async UniTask<JToken> AuthSession()
     {
-        return Upload("auth/session", null);
+        return await Upload("auth/session");
     }
 
-    public Task<JToken> GameNew(int seats, bool inviteOnly = false)
+    public async UniTask<JToken> GameNew(int seats, bool inviteOnly = false)
     {
         WWWForm form = new WWWForm();
         form.AddField("seats", seats);
@@ -81,10 +73,10 @@ public class APIWrapper : MonoBehaviour
             form.AddField("invite_only", "true");
         }
 
-        return Upload("game/new", form);
+        return await Upload("game/new", form);
     }
 
-    public Task<JToken> GameJoin(string gameId, string invitationCode = "")
+    public async UniTask<JToken> GameJoin(string gameId, string invitationCode = "")
     {
         WWWForm form = new WWWForm();
         form.AddField("game_id", gameId);
@@ -93,87 +85,65 @@ public class APIWrapper : MonoBehaviour
             form.AddField("invitation_code", invitationCode);
         }
 
-        return Upload("game/join", form);
+        return await Upload("game/join", form);
     }
 
-    public Task<JToken> GameList()
+    public async UniTask<JToken> GameList()
     {
-        return Upload("game/list", null);
+        return await Upload("game/list");
     }
 
-    public Task<JToken> GameCurrent()
+    public async UniTask<JToken> GameCurrent()
     {
-        return Upload("game/current", null);
+        return await Upload("game/current");
     }
     
-    public Task<JToken> GameLeave()
+    public async UniTask<JToken> GameLeave()
     {
-        return Upload("game/leave", null);
+        return await Upload("game/leave");
     }
     
-    public Task<JToken> GamePrices()
+    public async UniTask<JToken> GamePrices()
     {
-        return Upload("game/prices", null);
+        return await Upload("game/prices");
     }
     
-    public Task<JToken> PlayerRollDice()
+    public async UniTask<JToken> PlayerRollDice()
     {
-        return Upload("player/roll-dice", null);
+        return await Upload("player/roll-dice");
     }
     
-    public Task<JToken> PlayerEndTurn()
+    public async UniTask<JToken> PlayerEndTurn()
     {
-        return Upload("player/end-turn", null);
+        return await Upload("player/end-turn");
     }
     
-    public Task<JToken> TransactionBuyCurrentProperty()
+    public async UniTask<JToken> TransactionBuyCurrentProperty()
     {
-        return Upload("transaction/buy-current-property", null);
+        return await Upload("transaction/buy-current-property");
     }
 
-    private Task<JToken> Upload(string path, WWWForm form = null)
+    private static async UniTask<string> GetTextAsync(UnityWebRequest req)
     {
-        var t = new TaskCompletionSource<JToken>();
-        
-        _queue.EnqueueAction(Upload(path, form, (response, error) =>
-        {
-            if (error != null && response != null)
-            {
-                t.TrySetException(new BadResponseException(error, response));
-            }
-            else if (error != null)
-            {
-                t.TrySetException(new Exception(error));
-            }
-            else
-            {
-                t.TrySetResult(response);
-            }
-        }));
-        
-        return Task.Run(() => t.Task);
+        var op = await req.SendWebRequest();
+        return op.downloadHandler.text;
     }
     
-    private static IEnumerator Upload(string path, WWWForm form = null, APICallback callback = null)
+    private async UniTask<JToken> Upload(string path, WWWForm form = null)
     {
         var www = 
             form == null 
                 ? UnityWebRequest.Get(HTTP_PROTOCOL + URL + path)
                 : UnityWebRequest.Post(HTTP_PROTOCOL + URL + path, form);
-        yield return www.SendWebRequest();
+        
+        var resText = await GetTextAsync(www);
+        var response = JToken.Parse(resText);
 
-        if (callback != null)
+        if (www.error != null)
         {
-            try
-            {
-                var resText = www.downloadHandler.text;
-                var response = JToken.Parse(resText);
-                callback(response, www.error);
-            }
-            catch (JsonException ex)
-            {
-                callback(null, ex.Message);
-            }
+            throw new BadResponseException(www.error, response);
         }
+        
+        return response;
     }
 }

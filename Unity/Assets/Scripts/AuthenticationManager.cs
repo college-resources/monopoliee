@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Schema;
+using UniRx.Async;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -41,7 +41,7 @@ public class AuthenticationManager : MonoBehaviour
         }
     }
 
-    public async Task LoginFormSubmit(string username, string password)
+    public async UniTask LoginFormSubmit(string username, string password)
     {
         try
         {
@@ -56,7 +56,7 @@ public class AuthenticationManager : MonoBehaviour
         }
     }
 
-    public async Task RegisterFormSubmit(string username, string password)
+    public async UniTask RegisterFormSubmit(string username, string password)
     {
         try
         {
