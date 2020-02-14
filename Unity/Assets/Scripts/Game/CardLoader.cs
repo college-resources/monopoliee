@@ -14,7 +14,7 @@ public class CardLoader : MonoBehaviour
     {
         try
         {
-            var response = await APIWrapper.Instance.GamePrices();
+            var response = await ApiWrapper.GamePrices();
             
             var propertyPricesArray = (JArray) response["properties"];
             propertiesList = new List<PropertyCard>(propertyPricesArray.Count);

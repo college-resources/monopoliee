@@ -31,7 +31,7 @@ public class AuthenticationManager : MonoBehaviour
     {
         try
         {
-            var response = await APIWrapper.Instance.AuthSession();
+            var response = await ApiWrapper.AuthSession();
             user = User.GetUser(response["user"]);
             SceneManager.LoadScene("Home", LoadSceneMode.Single);
         }
@@ -45,7 +45,7 @@ public class AuthenticationManager : MonoBehaviour
     {
         try
         {
-            var response = await APIWrapper.Instance.AuthLogin(username, password);
+            var response = await ApiWrapper.AuthLogin(username, password);
             user = User.GetUser(response["user"]);
             SceneManager.LoadScene("Home", LoadSceneMode.Single);
         }
@@ -60,7 +60,7 @@ public class AuthenticationManager : MonoBehaviour
     {
         try
         {
-            var response = await APIWrapper.Instance.AuthRegister(username, password);
+            var response = await ApiWrapper.AuthRegister(username, password);
             user = User.GetUser(response["user"]);
             SceneManager.LoadScene("Home", LoadSceneMode.Single);
         }
@@ -75,7 +75,7 @@ public class AuthenticationManager : MonoBehaviour
     {
         try
         {
-            await APIWrapper.Instance.AuthLogout();
+            await ApiWrapper.AuthLogout();
             user = null;
             SceneManager.LoadScene("Login", LoadSceneMode.Single);
         }

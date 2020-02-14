@@ -24,7 +24,7 @@ public class Dice : MonoBehaviour {
         {
             try
             {
-                await APIWrapper.Instance.PlayerRollDice();
+                await ApiWrapper.PlayerRollDice();
             }
             catch (Exception e)
             {

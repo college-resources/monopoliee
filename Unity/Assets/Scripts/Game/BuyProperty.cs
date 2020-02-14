@@ -166,7 +166,7 @@ public class BuyProperty : MonoBehaviour
     {
         try
         {
-            await APIWrapper.Instance.TransactionBuyCurrentProperty();
+            await ApiWrapper.TransactionBuyCurrentProperty();
             
             Abandon();
         }

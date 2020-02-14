@@ -7,7 +7,7 @@ public class EndTurn : MonoBehaviour
     {
         try
         {
-            await APIWrapper.Instance.PlayerEndTurn();
+            await ApiWrapper.PlayerEndTurn();
         }
         catch (Exception e)
         {

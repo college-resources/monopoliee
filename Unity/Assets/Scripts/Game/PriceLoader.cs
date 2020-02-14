@@ -12,7 +12,7 @@ public class PriceLoader : MonoBehaviour
     {
         try
         {
-            var response = await APIWrapper.Instance.GamePrices();
+            var response = await ApiWrapper.GamePrices();
             
             var propertyPricesArray = (JArray) response["properties"];
             var propertyPrices = new List<int>(propertyPricesArray.Count);

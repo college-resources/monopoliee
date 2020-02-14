@@ -23,6 +23,8 @@ public delegate void OnPropertyOwnerChanged(int propertyIndex, string ownerId);
 
 public class SocketIo : MonoBehaviour
 {
+    private delegate void ApiCallback(JToken response, string error = null);
+    
     private WebSocket _websocket;
     private bool _closed;
     public event OnPlayerJoined PlayerJoined;
@@ -43,9 +45,9 @@ public class SocketIo : MonoBehaviour
         {
             if (error != null) return;
             
-            string sid = (string) response["sid"];
+            var sid = (string) response["sid"];
 
-            _websocket = new WebSocket(APIWrapper.WS_PROTOCOL + APIWrapper.URL + "socket.io/?EIO=3&transport=websocket&sid=" + sid);
+            _websocket = new WebSocket(ApiWrapper.WS_PROTOCOL + ApiWrapper.URL + "socket.io/?EIO=3&transport=websocket&sid=" + sid);
 
             _websocket.OnOpen += () =>
             {
@@ -238,9 +240,9 @@ public class SocketIo : MonoBehaviour
         return GameManager.Instance.Game;
     }
 
-    private static IEnumerator Upload(string path, APIWrapper.APICallback callback = null)
+    private static IEnumerator Upload(string path, ApiCallback callback = null)
     {
-        var www = UnityWebRequest.Get(APIWrapper.HTTP_PROTOCOL + APIWrapper.URL + path);
+        var www = UnityWebRequest.Get(ApiWrapper.HTTP_PROTOCOL + ApiWrapper.URL + path);
         yield return www.SendWebRequest();
 
         if (callback != null)

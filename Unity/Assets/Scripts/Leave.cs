@@ -10,14 +10,14 @@ public class Leave : MonoBehaviour
     {
         try
         {
-            await APIWrapper.Instance.GameLeave();
-            
-            SceneManager.LoadScene("Home", LoadSceneMode.Single);
+            await ApiWrapper.GameLeave();
         }
         catch (Exception e)
         {
             Debug.Log(e); // TODO: Show error to player
         }
+        
+        SceneManager.LoadScene("Home", LoadSceneMode.Single);
 
         socketIo.Close();
     }

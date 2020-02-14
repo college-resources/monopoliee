@@ -20,7 +20,7 @@ public class LoadGames : MonoBehaviour
 
         try
         {
-            var response = await APIWrapper.Instance.GameCurrent();
+            var response = await ApiWrapper.GameCurrent();
             
             Game.ClearCache();
             var gameToJoin = Game.GetGame(response);
@@ -89,7 +89,7 @@ public class LoadGames : MonoBehaviour
         
         try
         {
-            var response = await APIWrapper.Instance.GameList();
+            var response = await ApiWrapper.GameList();
             
             Game.ClearCache();
             
@@ -114,7 +114,7 @@ public class LoadGames : MonoBehaviour
         {
             try
             {
-                var response = await APIWrapper.Instance.GameJoin(game.Id);
+                var response = await ApiWrapper.GameJoin(game.Id);
                 
                 Game.ClearCache();
                 var gameToJoin = Game.GetGame(response);
