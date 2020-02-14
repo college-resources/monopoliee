@@ -3,12 +3,10 @@ using Newtonsoft.Json.Linq;
 
 public class BadResponseException : Exception
 {
-    private JToken _response;
-
-    public JToken Response => _response;
+    public JToken Response { get; }
 
     public BadResponseException(string message, JToken response) : base(message)
     {
-        _response = response;
+        Response = response;
     }
 }
