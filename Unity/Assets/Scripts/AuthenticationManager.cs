@@ -7,19 +7,17 @@ using UnityEngine.SceneManagement;
 public class AuthenticationManager : MonoBehaviour
 {
     #region Singleton
-    public static AuthenticationManager Instance { get => _instance; }
-
-    private static AuthenticationManager _instance;
+    public static AuthenticationManager Instance { get; private set; }
 
     private void Awake()
     {
-        if (_instance != null)
+        if (Instance != null)
         {
             Destroy(gameObject);
         }
         else
         {
-            _instance = this;
+            Instance = this;
             DontDestroyOnLoad(gameObject);
         }
     }
