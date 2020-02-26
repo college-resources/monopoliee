@@ -8,6 +8,8 @@ using UnityEngine.UI;
 
 public class BuyProperty : MonoBehaviour
 {
+    private readonly Session _session = Session.Instance.Value;
+    
     // Buttons
     private GameObject _abandon;
     private GameObject _buy;
@@ -35,7 +37,7 @@ public class BuyProperty : MonoBehaviour
 
     public IEnumerator DisplayCard(int location)
     {
-        if (GameManager.Instance.Game.CurrentPlayerId == AuthenticationManager.Instance.user.Id &&
+        if (GameManager.Instance.Game.CurrentPlayerId == _session.User.Id &&
             string.IsNullOrEmpty(Property.GetPropertyByLocation(location).OwnerId))
         {
             _buy.SetActive(true);

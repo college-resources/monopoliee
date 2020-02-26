@@ -23,14 +23,12 @@ public class AuthenticationManager : MonoBehaviour
     }
     #endregion
 
-    public User user;
-
     public async void Start()
     {
         try
         {
             var response = await ApiWrapper.AuthSession();
-            user = User.GetUser(response["user"]);
+            Session.Login(response);
             SceneManager.LoadScene("Home", LoadSceneMode.Single);
         }
         catch (Exception e)
@@ -44,7 +42,7 @@ public class AuthenticationManager : MonoBehaviour
         try
         {
             var response = await ApiWrapper.AuthLogin(username, password);
-            user = User.GetUser(response["user"]);
+            Session.Login(response);
             SceneManager.LoadScene("Home", LoadSceneMode.Single);
         }
         catch (Exception e)
@@ -59,7 +57,7 @@ public class AuthenticationManager : MonoBehaviour
         try
         {
             var response = await ApiWrapper.AuthRegister(username, password);
-            user = User.GetUser(response["user"]);
+            Session.Login(response);
             SceneManager.LoadScene("Home", LoadSceneMode.Single);
         }
         catch (Exception e)
@@ -74,7 +72,7 @@ public class AuthenticationManager : MonoBehaviour
         try
         {
             await ApiWrapper.AuthLogout();
-            user = null;
+            Session.Instance.Value?.Logout();
             SceneManager.LoadScene("Login", LoadSceneMode.Single);
         }
         catch (Exception e)

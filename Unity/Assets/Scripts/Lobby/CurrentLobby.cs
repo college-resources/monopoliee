@@ -7,6 +7,7 @@ public class CurrentLobby : MonoBehaviour
 {
     private GameManager _gameManager;
     private Game _game;
+    private readonly Session _session = Session.Instance.Value;
     public SocketIo socketIo;
     public GameObject waitingText;
     public GameObject bottomBar;
@@ -53,7 +54,7 @@ public class CurrentLobby : MonoBehaviour
     private void UpdateBottomBar()
     {
         var game = GameManager.Instance.Game;
-        var selfPlayerId = AuthenticationManager.Instance.user.Id;
+        var selfPlayerId = _session.User.Id;
         var bottomBarTransform = bottomBar.transform;
 
         if (game == null) return;

@@ -23,13 +23,14 @@ public class CurrentGame : MonoBehaviour
     private BuyProperty _buyProperty;
     private CameraController _cameraController;
     private CoroutineQueue _queue;
+    private readonly Session _session = Session.Instance.Value;
 
     private static readonly Vector3[] BottomBarPlayerDisplays = {
-            new Vector3(-720, 0, 0),
-            new Vector3(-240, 0, 0),
-            new Vector3(240, 0, 0),
-            new Vector3(720, 0, 0)
-        };
+        new Vector3(-720, 0, 0),
+        new Vector3(-240, 0, 0),
+        new Vector3(240, 0, 0),
+        new Vector3(720, 0, 0)
+    };
     
     private static readonly Vector3[] Offsets = {
         new Vector3(0.15f, 0, 0.15f),
@@ -169,7 +170,7 @@ public class CurrentGame : MonoBehaviour
     private void UpdateBottomBar()
     {
         var game = GameManager.Instance.Game;
-        var selfPlayerId = AuthenticationManager.Instance.user.Id;
+        var selfPlayerId = _session.User.Id;
         var bottomBarTransform = bottomBar.transform;
 
         if (game == null) return;
