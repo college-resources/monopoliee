@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using Schema;
 using TMPro;
@@ -17,13 +17,13 @@ public class CurrentGame : MonoBehaviour
     public GameObject[] playerPrefabs = new GameObject[4];
     public List<GameObject> playerList;
     public Route route;
-    public SocketIo socketIo;
     public TextMeshProUGUI statusMessage;
     
     private BuyProperty _buyProperty;
     private CameraController _cameraController;
     private CoroutineQueue _queue;
     private readonly Session _session = Session.Instance.Value;
+    private readonly SocketIo _socketIo = SocketIo.Instance;
 
     private static readonly Vector3[] BottomBarPlayerDisplays = {
         new Vector3(-720, 0, 0),
@@ -49,16 +49,16 @@ public class CurrentGame : MonoBehaviour
         _cameraController = GameObject.Find("CameraController").GetComponent<CameraController>();
         _buyProperty = GameObject.Find("BuyUI").GetComponent<BuyProperty>();
 
-        socketIo.PlayerJoined += SocketIoOnPlayerJoined;
-        socketIo.PlayerLeft += SocketIoOnPlayerLeft;
-        socketIo.PlayerRolledDice += SocketIoOnPlayerRolledDice;
-        socketIo.PlayerMoved+= SocketIoOnPlayerMoved;
-        socketIo.PlayerTurnChanged += SocketIoOnPlayerTurnChanged;
-        socketIo.PlayerPlaysAgain += SocketIoOnPlayerPlaysAgain;
-        socketIo.PlayerBalanceChanged += SocketIoOnPlayerBalanceChanged;
-        socketIo.PlayerSteppedOnChance += SocketIoOnPlayerSteppedOnChance;
-        socketIo.PlayerSteppedOnCommunityChest += SocketIoOnPlayerSteppedOnCommunityChest;
-        socketIo.PropertyOwnerChanged += SocketIoOnPropertyOwnerChanged;
+        _socketIo.PlayerJoined += SocketIoOnPlayerJoined;
+        _socketIo.PlayerLeft += SocketIoOnPlayerLeft;
+        _socketIo.PlayerRolledDice += SocketIoOnPlayerRolledDice;
+        _socketIo.PlayerMoved += SocketIoOnPlayerMoved;
+        _socketIo.PlayerTurnChanged += SocketIoOnPlayerTurnChanged;
+        _socketIo.PlayerPlaysAgain += SocketIoOnPlayerPlaysAgain;
+        _socketIo.PlayerBalanceChanged += SocketIoOnPlayerBalanceChanged;
+        _socketIo.PlayerSteppedOnChance += SocketIoOnPlayerSteppedOnChance;
+        _socketIo.PlayerSteppedOnCommunityChest += SocketIoOnPlayerSteppedOnCommunityChest;
+        _socketIo.PropertyOwnerChanged += SocketIoOnPropertyOwnerChanged;
 
         UpdateOwnedProperties();
         UpdateBottomBar();

@@ -22,6 +22,23 @@ public delegate void OnPropertyOwnerChanged(int propertyIndex, string ownerId);
 
 public class SocketIo : MonoBehaviour
 {
+    #region Singleton
+    public static SocketIo Instance { get; set; }
+
+    private void Awake()
+    {
+        if (Instance != null)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+    }
+    #endregion
+    
     private WebSocket _websocket;
     private bool _closed;
     public event OnPlayerJoined PlayerJoined;
@@ -109,7 +126,7 @@ public class SocketIo : MonoBehaviour
                         {
                             var firstPlayer = Player.GetPlayerById(array[1]["firstPlayer"].ToString());
                             GameManager.Instance.Game.UpdateCurrentPlayer(firstPlayer);
-                            GameManager.Instance.Game.SetRunning();
+                            
                             GameStarted?.Invoke();
                             break;
                         }
@@ -205,20 +222,6 @@ public class SocketIo : MonoBehaviour
     
     private void OnDestroy()
     {
-        Close();
-    }
-
-    private async void SendWebSocketMessage()
-    {
-        if (_websocket.State == WebSocketState.Open)
-        {
-            // Sending plain text
-            await _websocket.SendText("2");
-        }
-    }
-
-    public void Close()
-    {
         try
         {
             _closed = true;
@@ -228,6 +231,15 @@ public class SocketIo : MonoBehaviour
         catch (Exception e)
         {
             Debug.Log(e);
+        }
+    }
+
+    private async void SendWebSocketMessage()
+    {
+        if (_websocket.State == WebSocketState.Open)
+        {
+            // Sending plain text
+            await _websocket.SendText("2");
         }
     }
 

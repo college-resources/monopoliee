@@ -1,29 +1,38 @@
+using System;
 using System.Collections;
 using Schema;
 using TMPro;
+using UniRx;
 using UnityEngine;
 
 public class CurrentLobby : MonoBehaviour
 {
-    private GameManager _gameManager;
     private Game _game;
+    private GameManager _gameManager;
     private readonly Session _session = Session.Instance.Value;
-    public SocketIo socketIo;
+    private readonly SocketIo _socketIo = SocketIo.Instance;
+    
     public GameObject waitingText;
     public GameObject bottomBar;
     
     private void Start()
     {
-        socketIo.PlayerJoined += SocketIoOnPlayerJoined;
-        socketIo.PlayerLeft += SocketIoOnPlayerLeft;
-        socketIo.GameStarted += SocketIoOnGameStarted;
-        
+        _socketIo.PlayerJoined += SocketIoOnPlayerJoined;
+        _socketIo.PlayerLeft += SocketIoOnPlayerLeft;
+
+        _game = GameManager.Instance.Game;
         _gameManager = GameManager.Instance;
-        _game = _gameManager.Game;
 
         UpdateWaitingText();
         UpdateBottomBar();
-        StartCoroutine(StartGame());
+        
+        _game.Status.Subscribe(status =>
+        { 
+            if (_game.Status.Value == "running")
+            {
+                StartCoroutine(GameCountdown());
+            }
+        });
     }
 
     private void SocketIoOnPlayerJoined(Player player)
@@ -37,27 +46,20 @@ public class CurrentLobby : MonoBehaviour
         UpdateWaitingText();
         UpdateBottomBar();
     }
-    
-    private void SocketIoOnGameStarted()
-    {
-        StartCoroutine(StartGame());
-    }
 
     private void UpdateWaitingText()
     {
-        var game = GameManager.Instance.Game;
         var waitingTextTransform = waitingText.transform;
         var waitingTextMeshPro = waitingTextTransform.GetComponent<TextMeshProUGUI>();
-        waitingTextMeshPro.text = "Waiting for players " + game.Players.Count + "/" + game.Seats;
+        waitingTextMeshPro.text = "Waiting for players " + _game.Players.Count + "/" + _game.Seats;
     }
     
     private void UpdateBottomBar()
     {
-        var game = GameManager.Instance.Game;
         var selfPlayerId = _session.User.Id;
         var bottomBarTransform = bottomBar.transform;
 
-        if (game == null) return;
+        if (_game == null) return;
 
         for (var i = 0; i < 4; i++)
         {
@@ -70,7 +72,7 @@ public class CurrentLobby : MonoBehaviour
             typeTextMeshPro.text = "";
         }
 
-        foreach (var player in game.Players)
+        foreach (var player in _game.Players)
         {
             var index = player.Index;
         
@@ -92,10 +94,8 @@ public class CurrentLobby : MonoBehaviour
         }
     }
 
-    private IEnumerator StartGame()
+    private IEnumerator GameCountdown()
     {
-        if (_game.Status != "running") yield break;
-
         var waitingTextTransform = waitingText.transform;
         var waitingTextMeshPro = waitingTextTransform.GetComponent<TextMeshProUGUI>();
             

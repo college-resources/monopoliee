@@ -43,7 +43,7 @@ public class SceneListener : MonoBehaviour
                 Game.ClearCache();
                 var gameToJoin = Game.GetGame(response);
 
-                switch (gameToJoin.Status)
+                switch (gameToJoin.Status.Value)
                 {
                     case "waitingPlayers":
                         GameManager.Instance.GoToLobby(gameToJoin);

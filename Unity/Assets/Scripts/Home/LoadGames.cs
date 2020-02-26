@@ -36,7 +36,7 @@ public class LoadGames : MonoBehaviour
                 playerTextPanel.transform.localScale = new Vector3(1,1,1);
                 playerTextPanel.transform.localPosition = new Vector3(0,0,0);
                 
-                if (game.Status == "waitingPlayers")
+                if (game.Status.Value == "waitingPlayers")
                 {
                     playerTextPanel.transform.Find("WaitingText").GetComponent<TextMeshProUGUI>().text = "Waiting for players " + game.SeatsToString();
 

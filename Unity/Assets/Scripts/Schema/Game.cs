@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using UniRx;
 
 namespace Schema
 {
@@ -31,37 +32,30 @@ namespace Schema
         #endregion
 
         private string _id;
-        private List<Player> _players;
-        private List<Property> _properties;
         private int _seats;
-        private string _status;
-        private string _currentPlayerId;
 
         public string Id => _id;
-        public List<Player> Players => _players;
-        public List<Property> Properties => _properties;
+        public List<Player> Players { get; }
+        public List<Property> Properties { get; }
         public int Seats => _seats;
-        public string Status => _status;
-        public string CurrentPlayerId => _currentPlayerId;
+        public BehaviorSubject<string> Status { get; }
+        public string CurrentPlayerId { get; private set; }
 
         private Game(JToken game)
         {
             _id = (string) game["_id"];
-            _players = ((JArray) game["players"]).Select(Player.GetPlayer).ToList();
-            _properties = ((JArray) game["properties"]).Select(Property.GetProperty).ToList();
+            Players = ((JArray) game["players"]).Select(Player.GetPlayer).ToList();
+            Properties = ((JArray) game["properties"]).Select(Property.GetProperty).ToList();
             _seats = (int) game["seats"];
-            _status = (string) game["status"];
-            _currentPlayerId = (string) game["currentPlayer"];
+            Status = new BehaviorSubject<string>((string) game["status"]);
+            CurrentPlayerId = (string) game["currentPlayer"];
+            
+            SocketIo.Instance.GameStarted += SocketIoOnGameStarted;
         }
 
         public void AddPlayer(Player player)
         {
-            _players.Add(player);
-        }
-
-        public void SetRunning()
-        {
-            _status = "running";
+            Players.Add(player);
         }
 
         public static void ClearCache()
@@ -73,14 +67,19 @@ namespace Schema
 
         public void UpdateCurrentPlayer(Player player)
         {
-            _currentPlayerId = player.UserId;
+            CurrentPlayerId = player.UserId;
         }
         
         public Property GetPropertyByIndex(int index)
         {
-            return _properties[index];
+            return Properties[index];
         }
 
-        public string SeatsToString() => $"{_players.Count}/{_seats}";
+        public string SeatsToString() => $"{Players.Count}/{_seats}";
+        
+        private void SocketIoOnGameStarted()
+        {
+            Status.OnNext("running");
+        }
     }
 }

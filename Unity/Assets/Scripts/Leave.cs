@@ -4,8 +4,6 @@ using UnityEngine.SceneManagement;
 
 public class Leave : MonoBehaviour
 {
-    public SocketIo socketIo;
-    
     public async void OnClick()
     {
         try
@@ -18,7 +16,5 @@ public class Leave : MonoBehaviour
         }
         
         SceneManager.LoadScene("Home", LoadSceneMode.Single);
-
-        socketIo.Close();
     }
 }
