@@ -243,11 +243,6 @@ public class SocketIo : MonoBehaviour
         }
     }
 
-    private async void OnApplicationQuit()
-    {
-        await _websocket.Close();
-    }
-
     private static Game GetCurrentGame()
     {
         return GameManager.Instance.Game;
