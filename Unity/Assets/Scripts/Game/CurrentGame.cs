@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Schema;
 using TMPro;
@@ -76,6 +76,20 @@ public class CurrentGame : MonoBehaviour
         UpdateBottomBarPlayerPlaying(player);
         
         _cameraController.SetUpCameras();
+    }
+    
+    private void OnDestroy()
+    {
+        _socketIo.PlayerJoined -= SocketIoOnPlayerJoined;
+        _socketIo.PlayerLeft -= SocketIoOnPlayerLeft;
+        _socketIo.PlayerRolledDice -= SocketIoOnPlayerRolledDice;
+        _socketIo.PlayerMoved -= SocketIoOnPlayerMoved;
+        _socketIo.PlayerTurnChanged -= SocketIoOnPlayerTurnChanged;
+        _socketIo.PlayerPlaysAgain -= SocketIoOnPlayerPlaysAgain;
+        _socketIo.PlayerBalanceChanged -= SocketIoOnPlayerBalanceChanged;
+        _socketIo.PlayerSteppedOnChance -= SocketIoOnPlayerSteppedOnChance;
+        _socketIo.PlayerSteppedOnCommunityChest -= SocketIoOnPlayerSteppedOnCommunityChest;
+        _socketIo.PropertyOwnerChanged -= SocketIoOnPropertyOwnerChanged;
     }
 
     private void SocketIoOnPlayerJoined(Player player)

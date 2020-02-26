@@ -35,6 +35,12 @@ public class CurrentLobby : MonoBehaviour
         });
     }
 
+    private void OnDestroy()
+    {
+        _socketIo.PlayerJoined -= SocketIoOnPlayerJoined;
+        _socketIo.PlayerLeft -= SocketIoOnPlayerLeft;
+    }
+
     private void SocketIoOnPlayerJoined(Player player)
     {
         UpdateWaitingText();
