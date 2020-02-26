@@ -30,9 +30,7 @@ public class NewGameDialog : MonoBehaviour
                 try
                 {
                     var response = await ApiWrapper.GameNew(seatsNumber);
-                    
-                    var game = Game.GetGame(response);
-                    GameManager.Instance.GoToLobby(game);
+                    Game.Join(response);
                 }
                 catch (BadResponseException e)
                 {

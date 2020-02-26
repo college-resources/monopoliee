@@ -12,7 +12,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Start()
     {
-        var game = GameManager.Instance.Game;
+        var game = Game.Current.Value;
         _player = game.Players[transform.GetSiblingIndex()];
     }
 

@@ -4,7 +4,6 @@ using UniRx;
 
 public class Session
 {
-   // public static Session Instance => _session;
    public static readonly BehaviorSubject<Session> Instance = new BehaviorSubject<Session>(null);
    
    private User _user;

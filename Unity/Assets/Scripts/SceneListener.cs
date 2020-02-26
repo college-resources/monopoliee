@@ -25,10 +25,11 @@ public class SceneListener : MonoBehaviour
 
     private void Start()
     {
-        Session.Instance.Subscribe(SessionSceneListener);
+        Session.Instance.Subscribe(SessionListener);
+        Game.Current.Subscribe(GameListener);
     }
 
-    private static async void SessionSceneListener(Session session)
+    private static async void SessionListener(Session session)
     {
         if (session == null)
         {
@@ -39,30 +40,38 @@ public class SceneListener : MonoBehaviour
             try
             {
                 var response = await ApiWrapper.GameCurrent();
-            
-                Game.ClearCache();
-                var gameToJoin = Game.GetGame(response);
-
-                switch (gameToJoin.Status.Value)
-                {
-                    case "waitingPlayers":
-                        GameManager.Instance.GoToLobby(gameToJoin);
-                        break;
-                    case "running":
-                        GameManager.Instance.GoToGame(gameToJoin);
-                        break;
-                    default:
-                        Debug.Log("Unknown status: " + gameToJoin.Status);
-                        break;
-                }
+                Game.Join(response);
             }
             catch (BadResponseException)
             {
-                SceneManager.LoadScene("Home", LoadSceneMode.Single);
+                Game.Current.OnNext(null);
             }
             catch (Exception e)
             {
                 Debug.Log(e); // TODO: Show error to player
+            }
+        }
+    }
+
+    private static void GameListener(Game game)
+    {
+        if (game == null)
+        {
+            SceneManager.LoadScene("Home", LoadSceneMode.Single);
+        }
+        else
+        {
+            switch (game.Status.Value)
+            {
+                case "waitingPlayers":
+                    SceneManager.LoadScene("Lobby", LoadSceneMode.Single);
+                    break;
+                case "running":
+                    SceneManager.LoadScene("Game", LoadSceneMode.Single);
+                    break;
+                default:
+                    Debug.Log("Unknown status: " + game.Status);
+                    break;
             }
         }
     }

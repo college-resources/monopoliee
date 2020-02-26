@@ -87,10 +87,7 @@ public class LoadGames : MonoBehaviour
             try
             {
                 var response = await ApiWrapper.GameJoin(game.Id);
-                
-                Game.ClearCache();
-                var gameToJoin = Game.GetGame(response);
-                GameManager.Instance.GoToLobby(gameToJoin);
+                Game.Join(response);
             }
             catch (BadResponseException e)
             {

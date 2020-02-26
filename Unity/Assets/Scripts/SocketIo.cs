@@ -107,17 +107,17 @@ public class SocketIo : MonoBehaviour
                         case "playerJoined":
                         {
                             var player = Player.GetPlayer(array[1]["player"]);
-                            GetCurrentGame().Players.Add(player);
+                            Game.Current.Value.Players.Add(player);
                             PlayerJoined?.Invoke(player);
                             break;
                         }
                         case "playerLeft":
                         {
-                            foreach (var player in GetCurrentGame().Players.ToArray())
+                            foreach (var player in Game.Current.Value.Players.ToArray())
                             {
                                 if (player.UserId != (string) array[1]["user"]) continue;
                                 
-                                GetCurrentGame().Players.Remove(player);
+                                Game.Current.Value.Players.Remove(player);
                                 PlayerLeft?.Invoke(player);
                             }
                             break;
@@ -125,7 +125,7 @@ public class SocketIo : MonoBehaviour
                         case "gameStarted":
                         {
                             var firstPlayer = Player.GetPlayerById(array[1]["firstPlayer"].ToString());
-                            GameManager.Instance.Game.UpdateCurrentPlayer(firstPlayer);
+                            Game.Current.Value.UpdateCurrentPlayer(firstPlayer);
                             
                             GameStarted?.Invoke();
                             break;
@@ -141,7 +141,7 @@ public class SocketIo : MonoBehaviour
                         case "playerTurnChanged":
                         {
                             var player = Player.GetPlayerById(array[1]["user"].ToString());
-                            GameManager.Instance.Game.UpdateCurrentPlayer(player);
+                            Game.Current.Value.UpdateCurrentPlayer(player);
 
                             Debug.Log(player.UserId);
                             
@@ -194,7 +194,7 @@ public class SocketIo : MonoBehaviour
                             var propertyIndex = (int) array[1]["propertyIndex"];
                             var ownerId = array[1]["ownerId"].ToString();
 
-                            var property = GameManager.Instance.Game.GetPropertyByIndex(propertyIndex);
+                            var property = Game.Current.Value.GetPropertyByIndex(propertyIndex);
                             property.OwnerId = ownerId;
 
                             PropertyOwnerChanged?.Invoke(propertyIndex, ownerId);
@@ -243,11 +243,6 @@ public class SocketIo : MonoBehaviour
         }
     }
 
-    private static Game GetCurrentGame()
-    {
-        return GameManager.Instance.Game;
-    }
-    
     private static async UniTask<string> GetTextAsync(UnityWebRequest req)
     {
         var op = await req.SendWebRequest();

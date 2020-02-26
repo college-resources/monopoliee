@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using Schema;
 using TMPro;
@@ -8,7 +7,6 @@ using UnityEngine;
 public class CurrentLobby : MonoBehaviour
 {
     private Game _game;
-    private GameManager _gameManager;
     private readonly Session _session = Session.Instance.Value;
     private readonly SocketIo _socketIo = SocketIo.Instance;
     
@@ -20,19 +18,18 @@ public class CurrentLobby : MonoBehaviour
         _socketIo.PlayerJoined += SocketIoOnPlayerJoined;
         _socketIo.PlayerLeft += SocketIoOnPlayerLeft;
 
-        _game = GameManager.Instance.Game;
-        _gameManager = GameManager.Instance;
+        _game = Game.Current.Value;
 
         UpdateWaitingText();
         UpdateBottomBar();
         
-        _game.Status.Subscribe(status =>
-        { 
-            if (_game.Status.Value == "running")
-            {
-                StartCoroutine(GameCountdown());
-            }
-        });
+        // _game.Status.Subscribe(status =>
+        // { 
+        //     if (_game.Status.Value == "running")
+        //     {
+        //         StartCoroutine(GameCountdown());
+        //     }
+        // });
     }
 
     private void OnDestroy()
@@ -110,7 +107,7 @@ public class CurrentLobby : MonoBehaviour
             waitingTextMeshPro.text = "Game starting in " + i;
             yield return new WaitForSecondsRealtime(1f);
         }
-            
-        _gameManager.GoToGame(_game);
+
+        // TODO: Fix countdown
     }
 }

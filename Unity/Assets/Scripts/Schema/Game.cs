@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using UniRx;
+using UnityEngine;
 
 namespace Schema
 {
@@ -30,23 +32,22 @@ namespace Schema
         }
 
         #endregion
+        
+        public static readonly BehaviorSubject<Game> Current = new BehaviorSubject<Game>(null);
 
-        private string _id;
-        private int _seats;
-
-        public string Id => _id;
+        public string Id { get; }
         public List<Player> Players { get; }
         public List<Property> Properties { get; }
-        public int Seats => _seats;
+        public int Seats { get; }
         public BehaviorSubject<string> Status { get; }
         public string CurrentPlayerId { get; private set; }
 
         private Game(JToken game)
         {
-            _id = (string) game["_id"];
+            Id = (string) game["_id"];
             Players = ((JArray) game["players"]).Select(Player.GetPlayer).ToList();
             Properties = ((JArray) game["properties"]).Select(Property.GetProperty).ToList();
-            _seats = (int) game["seats"];
+            Seats = (int) game["seats"];
             Status = new BehaviorSubject<string>((string) game["status"]);
             CurrentPlayerId = (string) game["currentPlayer"];
             
@@ -64,6 +65,24 @@ namespace Schema
             Player.ClearCache();
             Property.ClearCache();
         }
+        
+        private static void ClearCacheExceptCurrentGame()
+        {
+            foreach (var game in _games.Values.Where(game => game.Id != Current.Value.Id))
+            {
+                foreach (var player in game.Players)
+                {
+                    player.Delete();
+                }
+                
+                foreach (var property in game.Properties)
+                {
+                    property.Delete();
+                }
+                
+                _games.Remove(game.Id);
+            }
+        }
 
         public void UpdateCurrentPlayer(Player player)
         {
@@ -75,7 +94,28 @@ namespace Schema
             return Properties[index];
         }
 
-        public string SeatsToString() => $"{Players.Count}/{_seats}";
+        public string SeatsToString() => $"{Players.Count}/{Seats}";
+
+        public static void Join(JToken game)
+        {
+            Current.OnNext(GetGame(game));
+            ClearCacheExceptCurrentGame();
+        }
+        
+        public async void Leave()
+        {
+            try
+            {
+                await ApiWrapper.GameLeave();
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e); // TODO: Show error to player
+            }
+            
+            Current.OnNext(null);
+            _games.Remove(Id);
+        }
         
         private void SocketIoOnGameStarted()
         {

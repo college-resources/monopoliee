@@ -1,20 +1,10 @@
-﻿using System;
+﻿using Schema;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class Leave : MonoBehaviour
 {
-    public async void OnClick()
+    public void OnClick()
     {
-        try
-        {
-            await ApiWrapper.GameLeave();
-        }
-        catch (Exception e)
-        {
-            Debug.Log(e); // TODO: Show error to player
-        }
-        
-        SceneManager.LoadScene("Home", LoadSceneMode.Single);
+        Game.Current.Value.Leave();
     }
 }

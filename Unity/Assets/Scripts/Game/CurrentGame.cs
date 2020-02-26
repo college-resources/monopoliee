@@ -72,7 +72,7 @@ public class CurrentGame : MonoBehaviour
             }
         }
 
-        var player = Player.GetPlayerById(GameManager.Instance.Game.CurrentPlayerId);
+        var player = Player.GetPlayerById(Game.Current.Value.CurrentPlayerId);
         UpdateBottomBarPlayerPlaying(player);
         
         _cameraController.SetUpCameras();
@@ -159,7 +159,7 @@ public class CurrentGame : MonoBehaviour
 
     private void SetupPlayers()
     {
-        var game = GameManager.Instance.Game;
+        var game = Game.Current.Value;
 
         foreach (var player in game.Players)
         {
@@ -183,7 +183,7 @@ public class CurrentGame : MonoBehaviour
     
     private void UpdateBottomBar()
     {
-        var game = GameManager.Instance.Game;
+        var game = Game.Current.Value;
         var selfPlayerId = _session.User.Id;
         var bottomBarTransform = bottomBar.transform;
 
@@ -225,8 +225,8 @@ public class CurrentGame : MonoBehaviour
     
     private void UpdateOwnedProperties()
     {
-        var game = GameManager.Instance.Game;
-        var properties = GameManager.Instance.Game.Properties;
+        var game = Game.Current.Value;
+        var properties = Game.Current.Value.Properties;
 
         foreach (var player in game.Players)
         {

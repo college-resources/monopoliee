@@ -80,5 +80,10 @@ namespace Schema
         {
             _players?.Clear();
         }
+
+        public void Delete()
+        {
+            _players.Remove(_userId);
+        }
     }
 }

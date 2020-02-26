@@ -11,7 +11,7 @@ public class CameraController : MonoBehaviour
     private void Start()
     {
         _currentGame = GameObject.Find("CurrentGame").GetComponent<CurrentGame>();
-        _game = GameManager.Instance.Game;
+        _game = Game.Current.Value;
     }
 
     public void SetUpCameras()

@@ -16,11 +16,11 @@ namespace Schema
                 _properties = new Dictionary<string, Property>();
             }
 
-            string propertyId = (string) property["_id"];
+            var propertyId = (string) property["_id"];
 
             if (!_properties.ContainsKey(propertyId))
             {
-                Property newProperty = new Property(property);
+                var newProperty = new Property(property);
                 _properties.Add(propertyId, newProperty);
             }
 
@@ -31,7 +31,7 @@ namespace Schema
         {
             foreach (var property in _properties)
             {
-                if (property.Value._location == location)
+                if (property.Value.Location == location)
                     return property.Value;
             }
             return null;
@@ -41,31 +41,29 @@ namespace Schema
 
         private string _id;
         private string _name;
-        private string _ownerId;
         private bool _mortgaged;
-        private int _location;
 
         public string Name => _name;
-        public string OwnerId
-        {
-            get => _ownerId;
-            set => _ownerId = value;
-        }
-
+        public string OwnerId { get; set; }
         public bool Mortgaged => _mortgaged;
-        public int Location => _location;
+        public int Location { get; }
 
         private Property(JToken property)
         {
             _name = (string) property["name"];
-            _ownerId = (string) property["owner"];
+            OwnerId = (string) property["owner"];
             _mortgaged = (bool) property["mortgaged"];
-            _location = (int) property["location"];
+            Location = (int) property["location"];
         }
         
         public static void ClearCache()
         {
             _properties?.Clear();
+        }
+        
+        public void Delete()
+        {
+            _properties.Remove(_id);
         }
     }
 }
