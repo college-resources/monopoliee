@@ -14,38 +14,10 @@ public class LoadGames : MonoBehaviour
     public GameObject contentDataPanel;
     public GameObject errorText;
     
-    private async void Start()
+    private void Start()
     {
         ClearErrorText();
-
-        try
-        {
-            var response = await ApiWrapper.GameCurrent();
-            
-            Game.ClearCache();
-            var gameToJoin = Game.GetGame(response);
-
-            switch (gameToJoin.Status)
-            {
-                case "waitingPlayers":
-                    GameManager.Instance.GoToLobby(gameToJoin);
-                    break;
-                case "running":
-                    GameManager.Instance.GoToGame(gameToJoin);
-                    break;
-                default:
-                    Debug.Log("Unknown status: " + gameToJoin.Status);
-                    break;
-            }
-        }
-        catch (BadResponseException)
-        {
-            LoadGameList();
-        }
-        catch (Exception e)
-        {
-            Debug.Log(e); // TODO: Show error to player
-        }
+        LoadGameList();
     }
 
     private void Initialize()

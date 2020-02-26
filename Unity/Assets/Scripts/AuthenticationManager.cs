@@ -1,8 +1,6 @@
 ﻿using System;
-using Schema;
 using UniRx.Async;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class AuthenticationManager : MonoBehaviour
 {
@@ -29,7 +27,6 @@ public class AuthenticationManager : MonoBehaviour
         {
             var response = await ApiWrapper.AuthSession();
             Session.Login(response);
-            SceneManager.LoadScene("Home", LoadSceneMode.Single);
         }
         catch (Exception e)
         {
@@ -43,7 +40,6 @@ public class AuthenticationManager : MonoBehaviour
         {
             var response = await ApiWrapper.AuthLogin(username, password);
             Session.Login(response);
-            SceneManager.LoadScene("Home", LoadSceneMode.Single);
         }
         catch (Exception e)
         {
@@ -58,7 +54,6 @@ public class AuthenticationManager : MonoBehaviour
         {
             var response = await ApiWrapper.AuthRegister(username, password);
             Session.Login(response);
-            SceneManager.LoadScene("Home", LoadSceneMode.Single);
         }
         catch (Exception e)
         {
@@ -73,7 +68,6 @@ public class AuthenticationManager : MonoBehaviour
         {
             await ApiWrapper.AuthLogout();
             Session.Instance.Value?.Logout();
-            SceneManager.LoadScene("Login", LoadSceneMode.Single);
         }
         catch (Exception e)
         {
