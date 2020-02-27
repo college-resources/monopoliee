@@ -60,19 +60,24 @@ public class SceneListener : MonoBehaviour
         }
         else
         {
-            switch (game.Status.Value)
-            {
-                case "waitingPlayers":
-                case "starting":
-                    ChangeScene("Lobby");
-                    break;
-                case "running":
-                    ChangeScene("Game");
-                    break;
-                default:
-                    Debug.Log("Unknown status: " + game.Status);
-                    break;
-            }
+            game.Status.Subscribe(GameStatusListener);
+        }
+    }
+
+    private static void GameStatusListener(string status)
+    {
+        switch (status)
+        {
+            case "waitingPlayers":
+            case "starting":
+                ChangeScene("Lobby");
+                break;
+            case "running":
+                ChangeScene("Game");
+                break;
+            default:
+                Debug.Log($"Unknown status: {status}");
+                break;
         }
     }
     
@@ -80,5 +85,7 @@ public class SceneListener : MonoBehaviour
     {
         if (SceneManager.GetActiveScene().name != scene)
             SceneManager.LoadScene(scene, LoadSceneMode.Single);
+        
+        Debug.Log($"Current scene: {scene}");
     }
 }

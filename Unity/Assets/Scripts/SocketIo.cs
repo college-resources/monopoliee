@@ -10,6 +10,8 @@ using UnityEngine.Networking;
 
 public delegate void OnPlayerJoined(Player player);
 public delegate void OnPlayerLeft(Player player);
+public delegate void OnGameIsStarting();
+public delegate void OnGameLobbyTimer(int remainingSeconds);
 public delegate void OnGameStarted();
 public delegate void OnPlayerRolledDice(Player player, int[] dice);
 public delegate void OnPlayerMoved(Player player, int location);
@@ -43,6 +45,8 @@ public class SocketIo : MonoBehaviour
     private bool _closed;
     public event OnPlayerJoined PlayerJoined;
     public event OnPlayerLeft PlayerLeft;
+    public event OnGameIsStarting GameIsStarting;
+    public event OnGameLobbyTimer GameLobbyTimer;
     public event OnGameStarted GameStarted;
     public event OnPlayerRolledDice PlayerRolledDice;
     public event OnPlayerMoved PlayerMoved;
@@ -107,25 +111,37 @@ public class SocketIo : MonoBehaviour
                         case "playerJoined":
                         {
                             var player = Player.GetPlayer(array[1]["player"]);
-                            Game.Current.Value.Players.Add(player);
+                            CurrentGame().Players.Add(player);
                             PlayerJoined?.Invoke(player);
                             break;
                         }
                         case "playerLeft":
                         {
-                            foreach (var player in Game.Current.Value.Players.ToArray())
+                            foreach (var player in CurrentGame().Players.ToArray())
                             {
                                 if (player.UserId != (string) array[1]["user"]) continue;
                                 
-                                Game.Current.Value.Players.Remove(player);
+                                CurrentGame().Players.Remove(player);
                                 PlayerLeft?.Invoke(player);
                             }
+                            break;
+                        }
+                        case "gameIsStarting":
+                        {
+                            GameIsStarting?.Invoke();
+                            break;
+                        }
+                        case "gameLobbyTimer":
+                        {
+                            var remainingSeconds = (int)array[1]["remainingSeconds"];
+
+                            GameLobbyTimer?.Invoke(remainingSeconds);
                             break;
                         }
                         case "gameStarted":
                         {
                             var firstPlayer = Player.GetPlayerById(array[1]["firstPlayer"].ToString());
-                            Game.Current.Value.UpdateCurrentPlayer(firstPlayer);
+                            CurrentGame().UpdateCurrentPlayer(firstPlayer);
                             
                             GameStarted?.Invoke();
                             break;
@@ -141,7 +157,7 @@ public class SocketIo : MonoBehaviour
                         case "playerTurnChanged":
                         {
                             var player = Player.GetPlayerById(array[1]["user"].ToString());
-                            Game.Current.Value.UpdateCurrentPlayer(player);
+                            CurrentGame().UpdateCurrentPlayer(player);
 
                             Debug.Log(player.UserId);
                             
@@ -194,7 +210,7 @@ public class SocketIo : MonoBehaviour
                             var propertyIndex = (int) array[1]["propertyIndex"];
                             var ownerId = array[1]["ownerId"].ToString();
 
-                            var property = Game.Current.Value.GetPropertyByIndex(propertyIndex);
+                            var property = CurrentGame().GetPropertyByIndex(propertyIndex);
                             property.OwnerId = ownerId;
 
                             PropertyOwnerChanged?.Invoke(propertyIndex, ownerId);
@@ -264,4 +280,6 @@ public class SocketIo : MonoBehaviour
         
         return response;
     }
+
+    private static Game CurrentGame() => Game.Current.Value;
 }

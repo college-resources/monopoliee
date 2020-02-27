@@ -23,13 +23,9 @@ public class CurrentLobby : MonoBehaviour
         UpdateWaitingText();
         UpdateBottomBar();
         
-        // _game.Status.Subscribe(status =>
-        // { 
-        //     if (_game.Status.Value == "running")
-        //     {
-        //         StartCoroutine(GameCountdown());
-        //     }
-        // });
+        var waitingTextTransform = waitingText.transform;
+        var waitingTextMeshPro = waitingTextTransform.GetComponent<TextMeshProUGUI>();
+        _game.LobbyTime.Skip(1).Subscribe(remainingSeconds => { waitingTextMeshPro.text = "Game starting in " + remainingSeconds; });
     }
 
     private void OnDestroy()
@@ -95,19 +91,5 @@ public class CurrentLobby : MonoBehaviour
             
             typeTextMeshPro.text = "Player";
         }
-    }
-
-    private IEnumerator GameCountdown()
-    {
-        var waitingTextTransform = waitingText.transform;
-        var waitingTextMeshPro = waitingTextTransform.GetComponent<TextMeshProUGUI>();
-            
-        for (var i = 3; i >= 0; i--)
-        {
-            waitingTextMeshPro.text = "Game starting in " + i;
-            yield return new WaitForSecondsRealtime(1f);
-        }
-
-        // TODO: Fix countdown
     }
 }

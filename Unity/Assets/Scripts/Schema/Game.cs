@@ -41,6 +41,8 @@ namespace Schema
         public int Seats { get; }
         public BehaviorSubject<string> Status { get; }
         public string CurrentPlayerId { get; private set; }
+        
+        public BehaviorSubject<int> LobbyTime { get; }
 
         private Game(JToken game)
         {
@@ -50,7 +52,11 @@ namespace Schema
             Seats = (int) game["seats"];
             Status = new BehaviorSubject<string>((string) game["status"]);
             CurrentPlayerId = (string) game["currentPlayer"];
-            
+
+            LobbyTime = new BehaviorSubject<int>(0);
+
+            SocketIo.Instance.GameIsStarting += SocketIoOnGameIsStarting;
+            SocketIo.Instance.GameLobbyTimer += SocketIoOnGameLobbyTimer;
             SocketIo.Instance.GameStarted += SocketIoOnGameStarted;
         }
 
@@ -98,8 +104,8 @@ namespace Schema
 
         public static void Join(JToken game)
         {
+            ClearCache();
             Current.OnNext(GetGame(game));
-            ClearCacheExceptCurrentGame();
         }
         
         public async void Leave()
@@ -115,6 +121,16 @@ namespace Schema
             
             Current.OnNext(null);
             _games.Remove(Id);
+        }
+        
+        private void SocketIoOnGameIsStarting()
+        {
+            Status.OnNext("starting");
+        }
+        
+        private void SocketIoOnGameLobbyTimer(int remainingseconds)
+        {
+            LobbyTime.OnNext(remainingseconds);
         }
         
         private void SocketIoOnGameStarted()

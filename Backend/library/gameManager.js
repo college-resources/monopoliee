@@ -136,13 +136,23 @@ class GameManager {
       }
       game.players.push(player)
 
+      self._gameHolder.getPlayerEvents().onPlayerJoined(player)
+
       if (game.players.length >= game.seats) {
-        game.status = 'running'
+        game.status = 'starting'
         game.currentPlayer = game.players[0].user
-        self._gameHolder.getPlayerEvents().onPlayerJoined(player)
-        self._gameHolder.getGameEvents().onGameStarted(game.currentPlayer)
-      } else {
-        self._gameHolder.getPlayerEvents().onPlayerJoined(player)
+        self._gameHolder.getGameEvents().onGameIsStarting()
+
+        let remainingSeconds = config.game.gameStartingSeconds
+        const timerLoop = setInterval(async () => {
+          if (!--remainingSeconds) {
+            clearInterval(timerLoop)
+            self._gameHolder.getGameEvents().onGameStarted(game.currentPlayer)
+            await Game.findByIdAndUpdate(game.id, { status: 'running' })
+          } else {
+            self._gameHolder.getGameEvents().onGameLobbyTimer(remainingSeconds)
+          }
+        }, 1000)
       }
 
       await game.save()

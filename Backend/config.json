@@ -6,11 +6,13 @@
 
     "status": [
       "running",
+      "starting",
       "waitingPlayers",
       "ended"
     ],
 
-    "msToReconnect": 15000
+    "msToReconnect": 15000,
+    "gameStartingSeconds": 3
   },
 
   "prices": {
