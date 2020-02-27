@@ -22,6 +22,7 @@ public class SceneListener : MonoBehaviour
         }
     }
     #endregion
+    
     private void Start()
     {
         Session.Instance.Skip(1).Subscribe(SessionListener);

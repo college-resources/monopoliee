@@ -128,9 +128,9 @@ namespace Schema
             Status.OnNext("starting");
         }
         
-        private void SocketIoOnGameLobbyTimer(int remainingseconds)
+        private void SocketIoOnGameLobbyTimer(int remainingSeconds)
         {
-            LobbyTime.OnNext(remainingseconds);
+            LobbyTime.OnNext(remainingSeconds);
         }
         
         private void SocketIoOnGameStarted()

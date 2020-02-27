@@ -27,7 +27,7 @@ public class Register : MonoBehaviour
         {
             try
             {
-                await AuthenticationManager.Instance.RegisterFormSubmit(username.Value, password.Value);
+                await Session.RegisterFormSubmit(username.Value, password.Value);
             }
             catch (BadResponseException e)
             {

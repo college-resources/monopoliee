@@ -23,7 +23,7 @@ public class Login : MonoBehaviour
 
         try
         {
-            await AuthenticationManager.Instance.LoginFormSubmit(username.Value, password.Value);
+            await Session.LoginFormSubmit(username.Value, password.Value);
         }
         catch (BadResponseException e)
         {

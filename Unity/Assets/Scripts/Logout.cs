@@ -4,6 +4,6 @@ public class Logout : MonoBehaviour
 {
     public void OnClick()
     {
-        AuthenticationManager.Instance.Logout();
+        Session.Logout();
     }
 }

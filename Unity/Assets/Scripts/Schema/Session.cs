@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using Schema;
 using UniRx;
+using UniRx.Async;
 using UnityEngine;
 
 public class Session
@@ -42,8 +43,44 @@ public class Session
       Instance.OnNext(new Session(session));
    }
 
-   public void Logout()
+   public static async void Logout()
    {
-      Instance.OnNext(null);
+      try
+      {
+         await ApiWrapper.AuthLogout();
+         Instance.OnNext(null);
+      }
+      catch (Exception e)
+      {
+         Debug.Log(e); // TODO: Show error to player
+      }
+   }
+   
+   public static async UniTask LoginFormSubmit(string username, string password)
+   {
+      try
+      {
+         var response = await ApiWrapper.AuthLogin(username, password);
+         Login(response);
+      }
+      catch (Exception e)
+      {
+         Debug.Log(e); // TODO: Show error to player
+         throw;
+      }
+   }
+
+   public static async UniTask RegisterFormSubmit(string username, string password)
+   {
+      try
+      {
+         var response = await ApiWrapper.AuthRegister(username, password);
+         Login(response);
+      }
+      catch (Exception e)
+      {
+         Debug.Log(e); // TODO: Show error to player
+         throw;
+      }
    }
 }
