@@ -1,6 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System;
+using Newtonsoft.Json.Linq;
 using Schema;
 using UniRx;
+using UnityEngine;
 
 public class Session
 {
@@ -19,6 +21,20 @@ public class Session
       _user = User.GetUser(session["user"]);
       _inGame = (bool) session["in_game"];
       _wasDisconnected = (bool) session["was_disconnected"];
+   }
+
+   public static async void Load()
+   {
+      try
+      {
+         var response = await ApiWrapper.AuthSession();            
+         Login(response);
+      }
+      catch (Exception e)
+      {
+         Instance.OnNext(null);
+         Debug.Log(e); // TODO: Show error to player
+      }
    }
 
    public static void Login(JToken session)

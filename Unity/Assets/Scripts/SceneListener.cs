@@ -22,18 +22,17 @@ public class SceneListener : MonoBehaviour
         }
     }
     #endregion
-
     private void Start()
     {
-        Session.Instance.Subscribe(SessionListener);
-        Game.Current.Subscribe(GameListener);
+        Session.Instance.Skip(1).Subscribe(SessionListener);
+        Game.Current.Skip(1).Subscribe(GameListener);
     }
 
     private static async void SessionListener(Session session)
     {
         if (session == null)
         {
-            SceneManager.LoadScene("Login", LoadSceneMode.Single);
+            ChangeScene("Login");
         }
         else
         {
@@ -57,22 +56,29 @@ public class SceneListener : MonoBehaviour
     {
         if (game == null)
         {
-            SceneManager.LoadScene("Home", LoadSceneMode.Single);
+            ChangeScene("Home");
         }
         else
         {
             switch (game.Status.Value)
             {
                 case "waitingPlayers":
-                    SceneManager.LoadScene("Lobby", LoadSceneMode.Single);
+                case "starting":
+                    ChangeScene("Lobby");
                     break;
                 case "running":
-                    SceneManager.LoadScene("Game", LoadSceneMode.Single);
+                    ChangeScene("Game");
                     break;
                 default:
                     Debug.Log("Unknown status: " + game.Status);
                     break;
             }
         }
+    }
+    
+    private static void ChangeScene(string scene)
+    {
+        if (SceneManager.GetActiveScene().name != scene)
+            SceneManager.LoadScene(scene, LoadSceneMode.Single);
     }
 }

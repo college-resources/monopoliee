@@ -21,17 +21,9 @@ public class AuthenticationManager : MonoBehaviour
     }
     #endregion
 
-    public async void Start()
+    private void Start()
     {
-        try
-        {
-            var response = await ApiWrapper.AuthSession();
-            Session.Login(response);
-        }
-        catch (Exception e)
-        {
-            Debug.Log(e); // TODO: Show error to player
-        }
+        Session.Load();
     }
 
     public async UniTask LoginFormSubmit(string username, string password)
