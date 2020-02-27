@@ -224,7 +224,7 @@ public class SocketIo : MonoBehaviour
                 }
             };
 
-            // Keep sending messages every 15s
+            // Keep sending messages
             InvokeRepeating(nameof(SendWebSocketMessage), 0.0f, 5.0f);
             
             // Waiting for messages
