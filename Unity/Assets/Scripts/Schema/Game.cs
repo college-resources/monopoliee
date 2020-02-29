@@ -60,34 +60,11 @@ namespace Schema
             SocketIo.Instance.GameStarted += SocketIoOnGameStarted;
         }
 
-        public void AddPlayer(Player player)
-        {
-            Players.Add(player);
-        }
-
         public static void ClearCache()
         {
             _games?.Clear();
             Player.ClearCache();
             Property.ClearCache();
-        }
-        
-        private static void ClearCacheExceptCurrentGame()
-        {
-            foreach (var game in _games.Values.Where(game => game.Id != Current.Value.Id))
-            {
-                foreach (var player in game.Players)
-                {
-                    player.Delete();
-                }
-                
-                foreach (var property in game.Properties)
-                {
-                    property.Delete();
-                }
-                
-                _games.Remove(game.Id);
-            }
         }
 
         public void UpdateCurrentPlayer(Player player)
