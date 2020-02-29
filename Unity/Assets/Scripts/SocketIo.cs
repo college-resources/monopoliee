@@ -111,19 +111,13 @@ public class SocketIo : MonoBehaviour
                         case "playerJoined":
                         {
                             var player = Player.GetPlayer(array[1]["player"]);
-                            CurrentGame().Players.Add(player);
                             PlayerJoined?.Invoke(player);
                             break;
                         }
                         case "playerLeft":
                         {
-                            foreach (var player in CurrentGame().Players.ToArray())
-                            {
-                                if (player.UserId != (string) array[1]["user"]) continue;
-                                
-                                CurrentGame().Players.Remove(player);
-                                PlayerLeft?.Invoke(player);
-                            }
+                            var player = Player.GetPlayerById((string) array[1]["user"]);
+                            PlayerLeft?.Invoke(player);
                             break;
                         }
                         case "gameIsStarting":
@@ -134,7 +128,6 @@ public class SocketIo : MonoBehaviour
                         case "gameLobbyTimer":
                         {
                             var remainingSeconds = (int)array[1]["remainingSeconds"];
-
                             GameLobbyTimer?.Invoke(remainingSeconds);
                             break;
                         }
@@ -150,7 +143,6 @@ public class SocketIo : MonoBehaviour
                         {
                             var player = Player.GetPlayerById(array[1]["user"].ToString());
                             var dice = ((JArray) array[1]["dice"]).Select(d => (int) d).ToArray();
-
                             PlayerRolledDice?.Invoke(player, dice);
                             break;
                         }
@@ -167,7 +159,6 @@ public class SocketIo : MonoBehaviour
                         case "playerPlaysAgain":
                         {
                             var player = Player.GetPlayerById(array[1]["user"].ToString());
-
                             PlayerPlaysAgain?.Invoke(player);
                             break;
                         }
@@ -175,7 +166,6 @@ public class SocketIo : MonoBehaviour
                         {
                             var player = Player.GetPlayerById(array[1]["user"].ToString());
                             var location = (int) array[1]["location"];
-
                             PlayerMoved?.Invoke(player, location);
                             break;
                         }
@@ -183,9 +173,6 @@ public class SocketIo : MonoBehaviour
                         {
                             var player = Player.GetPlayerById(array[1]["user"].ToString());
                             var balance = (int) array[1]["balance"];
-
-                            player.Balance = balance;
-
                             PlayerBalanceChanged?.Invoke(player, balance);
                             break;
                         }
@@ -193,7 +180,6 @@ public class SocketIo : MonoBehaviour
                         {
                             var player = Player.GetPlayerById(array[1]["user"].ToString());
                             var text = array[1]["card"].ToString();
-
                             PlayerSteppedOnChance?.Invoke(player, text);
                             break;
                         }
@@ -201,7 +187,6 @@ public class SocketIo : MonoBehaviour
                         {
                             var player = Player.GetPlayerById(array[1]["user"].ToString());
                             var text = array[1]["card"].ToString();
-
                             PlayerSteppedOnCommunityChest?.Invoke(player, text);
                             break;
                         }

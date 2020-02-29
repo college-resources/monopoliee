@@ -1,9 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Schema;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UniRx;
 
 public class CurrentGame : MonoBehaviour
 {
@@ -22,6 +24,7 @@ public class CurrentGame : MonoBehaviour
     private BuyProperty _buyProperty;
     private CameraController _cameraController;
     private CoroutineQueue _queue;
+    private IDisposable playerRemovedSubscription;
     private readonly Session _session = Session.Instance.Value;
     private readonly SocketIo _socketIo = SocketIo.Instance;
 
@@ -48,14 +51,15 @@ public class CurrentGame : MonoBehaviour
         
         _cameraController = GameObject.Find("CameraController").GetComponent<CameraController>();
         _buyProperty = GameObject.Find("BuyUI").GetComponent<BuyProperty>();
-
-        _socketIo.PlayerJoined += SocketIoOnPlayerJoined;
-        _socketIo.PlayerLeft += SocketIoOnPlayerLeft;
+        
+        var _game = Game.Current.Value;
+        
+        playerRemovedSubscription = _game.PlayerRemoved.Subscribe(PlayerLeft);
+        
         _socketIo.PlayerRolledDice += SocketIoOnPlayerRolledDice;
         _socketIo.PlayerMoved += SocketIoOnPlayerMoved;
         _socketIo.PlayerTurnChanged += SocketIoOnPlayerTurnChanged;
         _socketIo.PlayerPlaysAgain += SocketIoOnPlayerPlaysAgain;
-        _socketIo.PlayerBalanceChanged += SocketIoOnPlayerBalanceChanged;
         _socketIo.PlayerSteppedOnChance += SocketIoOnPlayerSteppedOnChance;
         _socketIo.PlayerSteppedOnCommunityChest += SocketIoOnPlayerSteppedOnCommunityChest;
         _socketIo.PropertyOwnerChanged += SocketIoOnPropertyOwnerChanged;
@@ -72,34 +76,26 @@ public class CurrentGame : MonoBehaviour
             }
         }
 
-        var player = Player.GetPlayerById(Game.Current.Value.CurrentPlayerId);
-        UpdateBottomBarPlayerPlaying(player);
+        var currentPlayer = Player.GetPlayerById(Game.Current.Value.CurrentPlayerId);
+        UpdateBottomBarPlayerPlaying(currentPlayer);
         
         _cameraController.SetUpCameras();
     }
     
     private void OnDestroy()
     {
-        _socketIo.PlayerJoined -= SocketIoOnPlayerJoined;
-        _socketIo.PlayerLeft -= SocketIoOnPlayerLeft;
+        playerRemovedSubscription?.Dispose();
+        
         _socketIo.PlayerRolledDice -= SocketIoOnPlayerRolledDice;
         _socketIo.PlayerMoved -= SocketIoOnPlayerMoved;
         _socketIo.PlayerTurnChanged -= SocketIoOnPlayerTurnChanged;
         _socketIo.PlayerPlaysAgain -= SocketIoOnPlayerPlaysAgain;
-        _socketIo.PlayerBalanceChanged -= SocketIoOnPlayerBalanceChanged;
         _socketIo.PlayerSteppedOnChance -= SocketIoOnPlayerSteppedOnChance;
         _socketIo.PlayerSteppedOnCommunityChest -= SocketIoOnPlayerSteppedOnCommunityChest;
         _socketIo.PropertyOwnerChanged -= SocketIoOnPropertyOwnerChanged;
     }
 
-    private void SocketIoOnPlayerJoined(Player player)
-    {
-        UpdateBottomBar();
-        UpdateOwnedProperties();
-        AddPlayer(player);
-    }
-    
-    private void SocketIoOnPlayerLeft(Player player)
+    private void PlayerLeft(Player player)
     {
         UpdateBottomBar();
         UpdateOwnedProperties();
@@ -135,7 +131,7 @@ public class CurrentGame : MonoBehaviour
         _queue.EnqueueAction(ShowStatusMessage(player.Name + " plays again"));
     }
     
-    private void SocketIoOnPlayerBalanceChanged(Player player, int balance)
+    private void PlayerBalanceChanged()
     {
         UpdateBottomBar();
     }
@@ -209,7 +205,6 @@ public class CurrentGame : MonoBehaviour
             var nameTextMeshPro = nameTextTransform.GetComponent<TextMeshProUGUI>();
             var balanceTextMeshPro = balanceTextTransform.GetComponent<TextMeshProUGUI>();
             
-
             if (player.UserId == selfPlayerId)
             {
                 nameTextMeshPro.text = "•" + player.Name + "•";
@@ -219,7 +214,7 @@ public class CurrentGame : MonoBehaviour
                 nameTextMeshPro.text = player.Name;
             }
             
-            balanceTextMeshPro.text = player.Balance + "ΔΜ";
+            balanceTextMeshPro.text = player.Balance.Value + "ΔΜ";
         }
     }
     
@@ -250,11 +245,8 @@ public class CurrentGame : MonoBehaviour
     private IEnumerator ShowStatusMessage(string text)
     {
         statusMessage.text = text;
-
         yield return new WaitForSecondsRealtime(2f);
-        
         statusMessage.text = "";
-        
         chanceCard.SetActive(false);
     }
 

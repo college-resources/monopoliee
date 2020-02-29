@@ -34,6 +34,8 @@ namespace Schema
         #endregion
         
         public static readonly BehaviorSubject<Game> Current = new BehaviorSubject<Game>(null);
+        public readonly Subject<Player> PlayerAdded = new Subject<Player>();
+        public readonly Subject<Player> PlayerRemoved = new Subject<Player>();
 
         public string Id { get; }
         public List<Player> Players { get; }
@@ -41,7 +43,6 @@ namespace Schema
         public int Seats { get; }
         public BehaviorSubject<string> Status { get; }
         public string CurrentPlayerId { get; private set; }
-        
         public BehaviorSubject<int> LobbyTime { get; }
 
         private Game(JToken game)
@@ -58,6 +59,22 @@ namespace Schema
             SocketIo.Instance.GameIsStarting += SocketIoOnGameIsStarting;
             SocketIo.Instance.GameLobbyTimer += SocketIoOnGameLobbyTimer;
             SocketIo.Instance.GameStarted += SocketIoOnGameStarted;
+            SocketIo.Instance.PlayerJoined += SocketIoOnPlayerJoined;
+            SocketIo.Instance.PlayerLeft += SocketIoOnPlayerLeft;
+        }
+
+        ~Game()
+        {
+            PlayerAdded?.Dispose();
+            PlayerRemoved?.Dispose();
+            Status?.Dispose();
+            LobbyTime?.Dispose();
+            
+            SocketIo.Instance.GameIsStarting -= SocketIoOnGameIsStarting;
+            SocketIo.Instance.GameLobbyTimer -= SocketIoOnGameLobbyTimer;
+            SocketIo.Instance.GameStarted -= SocketIoOnGameStarted;
+            SocketIo.Instance.PlayerJoined -= SocketIoOnPlayerJoined;
+            SocketIo.Instance.PlayerLeft -= SocketIoOnPlayerLeft;
         }
 
         public static void ClearCache()
@@ -113,6 +130,18 @@ namespace Schema
         private void SocketIoOnGameStarted()
         {
             Status.OnNext("running");
+        }
+        
+        private void SocketIoOnPlayerJoined(Player player)
+        {
+            Players.Add(player);
+            PlayerAdded.OnNext(player);
+        }
+        
+        private void SocketIoOnPlayerLeft(Player player)
+        {
+            Players.Remove(player);
+            PlayerRemoved.OnNext(player);
         }
     }
 }

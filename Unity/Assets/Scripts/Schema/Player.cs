@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using UniRx;
 
 namespace Schema
 {
@@ -33,47 +34,38 @@ namespace Schema
         }
 
         #endregion
-        
-        private string _userId;
-        private int _balance;
-        private int _position;
-        private int _duplicateRolls;
-        private bool _jailed;
-        private int _index;
-        private string _name;
 
-        public string UserId => _userId;
-        public int Balance
-        {
-            get => _balance;
-            set => _balance = value;
-        }
-
-        public int Position
-        {
-            get => _position;
-            set => _position = value;
-        }
-
-        public int DuplicateRolls => _duplicateRolls;
-        public bool Jailed => _jailed;
-        public int Index => _index;
-        public string Name => _name;
+        public string UserId { get; }
+        public BehaviorSubject<int> Balance { get; set; }
+        public int Position { get; set; }
+        public int DuplicateRolls { get; }
+        public bool Jailed { get; }
+        public int Index { get; }
+        public string Name { get; }
 
         private Player(JToken player)
         {
-            _userId = (string) player["user"];
-            _balance = (int) player["balance"];
-            _position = (int) player["position"];
-            _duplicateRolls = (int) player["duplicateRolls"];
-            _jailed = (bool) player["jailed"];
-            _index = (int) player["index"];
-            _name = (string) player["name"];
+            UserId = (string) player["user"];
+            Balance = new BehaviorSubject<int>((int) player["balance"]);
+            Position = (int) player["position"];
+            DuplicateRolls = (int) player["duplicateRolls"];
+            Jailed = (bool) player["jailed"];
+            Index = (int) player["index"];
+            Name = (string) player["name"];
+
+            SocketIo.Instance.PlayerBalanceChanged += SocketIoOnPlayerBalanceChanged;
+        }
+
+        ~Player()
+        {
+            Balance?.Dispose();
+            
+            SocketIo.Instance.PlayerBalanceChanged -= SocketIoOnPlayerBalanceChanged;
         }
 
         public void SetPosition(int position)
         {
-            _position = position;
+            Position = position;
         }
         
         public static void ClearCache()
@@ -83,7 +75,12 @@ namespace Schema
 
         public void Delete()
         {
-            _players.Remove(_userId);
+            _players.Remove(UserId);
+        }
+        
+        private void SocketIoOnPlayerBalanceChanged(Player player, int balance)
+        {
+            player.Balance = new BehaviorSubject<int>(balance);
         }
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections;
+using System;
 using Schema;
 using TMPro;
 using UniRx;
@@ -7,40 +7,42 @@ using UnityEngine;
 public class CurrentLobby : MonoBehaviour
 {
     private Game _game;
+    private IDisposable playerAddedSubscription;
+    private IDisposable playerRemovedSubscription;
+    private IDisposable lobbyTimeSubscription;
     private readonly Session _session = Session.Instance.Value;
-    private readonly SocketIo _socketIo = SocketIo.Instance;
     
-    public GameObject waitingText;
     public GameObject bottomBar;
+    public TextMeshProUGUI waitingText;
     
     private void Start()
     {
-        _socketIo.PlayerJoined += SocketIoOnPlayerJoined;
-        _socketIo.PlayerLeft += SocketIoOnPlayerLeft;
-
         _game = Game.Current.Value;
+
+        playerAddedSubscription = _game.PlayerAdded.Subscribe(PlayerJoined);
+        playerRemovedSubscription = _game.PlayerRemoved.Subscribe(PlayerLeft);
+        lobbyTimeSubscription = _game.LobbyTime.Skip(1).Subscribe(
+            remainingSeconds => { waitingText.text = "Game starting in " + remainingSeconds; }
+        );
 
         UpdateWaitingText();
         UpdateBottomBar();
-        
-        var waitingTextTransform = waitingText.transform;
-        var waitingTextMeshPro = waitingTextTransform.GetComponent<TextMeshProUGUI>();
-        _game.LobbyTime.Skip(1).Subscribe(remainingSeconds => { waitingTextMeshPro.text = "Game starting in " + remainingSeconds; });
     }
 
     private void OnDestroy()
     {
-        _socketIo.PlayerJoined -= SocketIoOnPlayerJoined;
-        _socketIo.PlayerLeft -= SocketIoOnPlayerLeft;
+        playerAddedSubscription?.Dispose();
+        playerRemovedSubscription?.Dispose();
+        lobbyTimeSubscription?.Dispose();
     }
 
-    private void SocketIoOnPlayerJoined(Player player)
+    private void PlayerJoined(Player player)
     {
         UpdateWaitingText();
         UpdateBottomBar();
     }
     
-    private void SocketIoOnPlayerLeft(Player player)
+    private void PlayerLeft(Player player)
     {
         UpdateWaitingText();
         UpdateBottomBar();
@@ -48,9 +50,7 @@ public class CurrentLobby : MonoBehaviour
 
     private void UpdateWaitingText()
     {
-        var waitingTextTransform = waitingText.transform;
-        var waitingTextMeshPro = waitingTextTransform.GetComponent<TextMeshProUGUI>();
-        waitingTextMeshPro.text = "Waiting for players " + _game.Players.Count + "/" + _game.Seats;
+        waitingText.text = "Waiting for players " + _game.Players.Count + "/" + _game.Seats;
     }
     
     private void UpdateBottomBar()
