@@ -22,6 +22,8 @@ public class SceneListener : MonoBehaviour
         }
     }
     #endregion
+
+    private static IDisposable gameStatusListenerSubscription;
     
     private void Start()
     {
@@ -57,11 +59,12 @@ public class SceneListener : MonoBehaviour
     {
         if (game == null)
         {
+            gameStatusListenerSubscription?.Dispose();
             ChangeScene("Home");
         }
         else
         {
-            game.Status.Subscribe(GameStatusListener);
+            gameStatusListenerSubscription = game.Status.Subscribe(GameStatusListener);
         }
     }
 
