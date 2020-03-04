@@ -36,7 +36,7 @@ namespace Schema
         #endregion
 
         public string UserId { get; }
-        public BehaviorSubject<int> Balance { get; set; }
+        public BehaviorSubject<int> Balance { get; }
         public int Position { get; set; }
         public int DuplicateRolls { get; }
         public bool Jailed { get; }
@@ -80,7 +80,7 @@ namespace Schema
         
         private void SocketIoOnPlayerBalanceChanged(Player player, int balance)
         {
-            player.Balance = new BehaviorSubject<int>(balance);
+            player.Balance.OnNext(balance);
         }
     }
 }
