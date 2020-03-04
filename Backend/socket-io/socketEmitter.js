@@ -1,6 +1,6 @@
 const { EventEmitter } = require('events')
 
-const SocketWatcher = require('./socketWatcher')
+const sockets = require('../rxjs/sockets')
 
 let _io = null
 
@@ -8,25 +8,23 @@ class SocketEmitter extends EventEmitter {
   constructor (gameHolder) {
     super()
 
-    const gameId = gameHolder.getJSON()._id.toString()
+    const gameId = gameHolder.getJSON && gameHolder.getJSON()._id.toString()
 
     this._gameHolder = gameHolder
     this._gameId = gameId
     this.emit = this.emit.bind(this)
-    this._socketWatcher = SocketWatcher.getSocketWatcher(gameId)
   }
 
   async emit (eventName, data) {
     console.log(eventName, data)
-    await this._socketWatcher.updatingSockets().acquire()
     super.emit(eventName, data)
-    const sockets = this._socketWatcher.getSockets()
     if (_io && sockets) {
-      sockets.forEach(({ socketId }) => {
+      sockets.getSocketsForGame(this._gameId).forEach(({ socketId, user, game }) => {
+        console.log('user', user.toString())
+        console.log('game', game.toString())
         _io.to(socketId).emit(eventName, data)
       })
     }
-    this._socketWatcher.updatingSockets().release()
   }
 }
 

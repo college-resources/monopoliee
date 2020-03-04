@@ -23,8 +23,9 @@ const transactionRouter = require('./routes/transaction')
 const GameError = require('./library/gameError')
 const GameManager = require('./library/gameManager')
 
-const SocketManager = require('./socket-io/socketManager')
 const SocketEmitter = require('./socket-io/socketEmitter')
+
+const sockets = require('./rxjs/sockets')
 
 const app = express()
 const server = http.Server(app)
@@ -62,33 +63,45 @@ io.use(sharedSession(session))
 SocketEmitter.setIo(io)
 
 io.on('connection', async socket => {
-  const getSessionUser = () => {
+  const getSessionUser = async () => {
     socket.handshake.session.reload(err => {
       if (err) throw err
     })
 
-    const user = socket.handshake.session.user
-    return user || {}
+    return socket.handshake.session.user
   }
 
-  let gameManager = new GameManager(getSessionUser())
-  await gameManager.init()
-  await SocketManager.getSocket({
-    game: gameManager.current() && gameManager.current()._id,
-    user: getSessionUser()._id,
-    sessionId: socket.handshake.sessionID,
-    socketId: socket.id
-  })
-  gameManager = null
+  await getSessionUser().then(async user => {
+    const socketToAdd = {
+      sessionId: socket.handshake.sessionID,
+      socketId: socket.id
+    }
 
-  socket.on('disconnect', async () => {
-    const lastGameManager = new GameManager(getSessionUser())
-    await lastGameManager.init()
-    const lastGameHolder = lastGameManager.getGameHolder()
-    const playerEvents = lastGameHolder.getPlayerEvents()
-    await playerEvents.onPlayerDisconnected(getSessionUser()._id)
-    SocketManager.deleteSocket(socket.id)
+    if (user) {
+      socketToAdd.user = user && user._id.toString()
+      const gameManager = new GameManager(user)
+      await gameManager.init().then(() => {
+        const currentGame = gameManager.current()
+        socketToAdd.game = currentGame && currentGame._id.toString()
+      })
+    }
+
+    sockets.socketConnect.next(socketToAdd)
   })
+
+  socket.on('disconnect', () => getSessionUser().then(async user => {
+    if (user) {
+      const lastGameManager = new GameManager(user)
+      await lastGameManager.init().then(async () => {
+        const lastGameHolder = lastGameManager.getGameHolder()
+        if (lastGameHolder) {
+          const playerEvents = lastGameHolder.getPlayerEvents()
+          await playerEvents.onPlayerDisconnected(user._id)
+        }
+      })
+    }
+    sockets.socketDisconnect.next(socket.id)
+  }))
 })
 
 app.use((req, _, next) => {

@@ -2,8 +2,7 @@ const config = require('../config.json')
 
 const Game = require('../models/game')
 
-const SocketManager = require('../socket-io/socketManager')
-const SocketWatcher = require('../socket-io/socketWatcher')
+const sockets = require('../rxjs/sockets')
 
 const GameHolder = require('./gameHolder')
 const GameError = require('./gameError')
@@ -69,7 +68,7 @@ class GameManager {
     self._gameHolder = await GameHolder.getGameHolder(game.id)
 
     self._gameHolder.getPlayerEvents().onPlayerJoined(player)
-    SocketManager.updateSocketsGameFromUser(self._user._id, game.id)
+    sockets.updateSocketsGameFromUser(self._user._id, game.id)
 
     return self._gameHolder.getJSON()
   }
@@ -158,7 +157,7 @@ class GameManager {
       await game.save()
     }
 
-    SocketManager.updateSocketsGameFromUser(self._user._id, game.id)
+    sockets.updateSocketsGameFromUser(self._user._id, game.id)
 
     await self._gameHolder.update()
 
@@ -202,7 +201,7 @@ class GameManager {
       }
     )
 
-    SocketManager.updateSocketsGameFromUser(self._user._id)
+    sockets.updateSocketsGameFromUser(self._user._id)
     self._gameHolder.getPlayerEvents().onPlayerLeft(self._user._id)
 
     if (game.players.length === 1 && game.status === 'running') {
@@ -224,16 +223,12 @@ class GameManager {
 
     await self._gameHolder.update()
 
-    if (!game.players.length) {
-      SocketWatcher.disposeSocketWatcher(game.id)
-    }
-
     return self._gameHolder.getJSON()
   }
 
   current () {
     if (this._gameHolder) {
-      SocketManager.updateSocketsGameFromUser(this._user._id, this._gameHolder._game._id)
+      sockets.updateSocketsGameFromUser(this._user._id, this._gameHolder._game._id)
       return this._gameHolder.getJSON()
     }
   }
