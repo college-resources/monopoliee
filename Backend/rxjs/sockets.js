@@ -2,12 +2,12 @@ const { Subject } = require('rxjs')
 
 const sockets = new Map()
 
-module.exports.socketConnect = new Subject(null)
-module.exports.socketDisconnect = new Subject(null)
-module.exports.socketUpdate = new Subject(null)
+module.exports.socketConnect = new Subject()
+module.exports.socketDisconnect = new Subject()
+module.exports.socketUpdate = new Subject()
 
 this.socketConnect.subscribe(s => sockets.set(s.socketId, s))
-this.socketDisconnect.subscribe(s => sockets.delete(s.socketId))
+this.socketDisconnect.subscribe(s => sockets.delete(s.sessionId))
 this.socketUpdate.subscribe(s => sockets.set(s.socketId, s))
 
 module.exports.getSocketsForGame = gameId => {
@@ -32,3 +32,5 @@ module.exports.updateSocketsUserFromSession = async (sessionId, userId) => {
   const sessionSockets = socketsValues.filter(s => s.sessionId === sessionId)
   sessionSockets.forEach(s => this.socketUpdate.next({ ...s, user: userId.toString() }))
 }
+
+module.exports.values = sockets

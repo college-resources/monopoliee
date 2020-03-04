@@ -65,7 +65,7 @@ SocketEmitter.setIo(io)
 io.on('connection', async socket => {
   const getSessionUser = async () => {
     socket.handshake.session.reload(err => {
-      if (err) throw err
+      if (err) console.error(err)
     })
 
     return socket.handshake.session.user
@@ -85,7 +85,6 @@ io.on('connection', async socket => {
         socketToAdd.game = currentGame && currentGame._id.toString()
       })
     }
-
     sockets.socketConnect.next(socketToAdd)
   })
 
@@ -100,7 +99,8 @@ io.on('connection', async socket => {
         }
       })
     }
-    sockets.socketDisconnect.next(socket.id)
+    const s = sockets.values.get(socket.id)
+    sockets.socketDisconnect.next(s)
   }))
 })
 
