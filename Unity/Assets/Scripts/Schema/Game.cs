@@ -75,6 +75,18 @@ namespace Schema
             SocketIo.Instance.GameStarted -= SocketIoOnGameStarted;
             SocketIo.Instance.PlayerJoined -= SocketIoOnPlayerJoined;
             SocketIo.Instance.PlayerLeft -= SocketIoOnPlayerLeft;
+            
+            foreach (var player in Players)
+            {
+                player.Delete();
+            }
+            
+            foreach (var property in Properties)
+            {
+                property.Delete();
+            }
+            
+            _games.Remove(Id);
         }
 
         public static void ClearCache()
