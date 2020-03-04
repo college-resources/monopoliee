@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.05033976, g: 0.14940047, b: 0.19345555, a: 1}
+  m_IndirectSpecularColor: {r: 0.051594675, g: 0.15008068, b: 0.19371647, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -4057,6 +4057,7 @@ MonoBehaviour:
   m_IgnoreTimeScale: 0
   m_WorldUpOverride: {fileID: 0}
   m_UpdateMethod: 2
+  m_BlendUpdateMethod: 1
   m_DefaultBlend:
     m_Style: 1
     m_Time: 1
@@ -8521,7 +8522,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -720, y: -0.0000015497}
+  m_AnchoredPosition: {x: -720, y: -0}
   m_SizeDelta: {x: 480, y: 121}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1085762786
@@ -9993,6 +9994,11 @@ MonoBehaviour:
   playerList: []
   route: {fileID: 6087595704745296695}
   statusMessage: {fileID: 487851892}
+  playerBalanceTexts:
+  - {fileID: 1220674870}
+  - {fileID: 1531090018}
+  - {fileID: 465892957}
+  - {fileID: 336883182}
 --- !u!4 &1316988788
 Transform:
   m_ObjectHideFlags: 0

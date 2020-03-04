@@ -20,11 +20,14 @@ public class CurrentGame : MonoBehaviour
     public List<GameObject> playerList;
     public Route route;
     public TextMeshProUGUI statusMessage;
-    
+    public TextMeshProUGUI[] playerBalanceTexts = new TextMeshProUGUI[4];
+
     private BuyProperty _buyProperty;
     private CameraController _cameraController;
     private CoroutineQueue _queue;
-    private IDisposable playerRemovedSubscription;
+    private Game _game;
+    private IDisposable[] _playerBalanceSubscription;
+    private IDisposable _playerRemovedSubscription;
     private readonly Session _session = Session.Instance.Value;
     private readonly SocketIo _socketIo = SocketIo.Instance;
 
@@ -44,18 +47,24 @@ public class CurrentGame : MonoBehaviour
 
     private void Start()
     {
+        _game = Game.Current.Value;
+        
         _queue = new CoroutineQueue(this);
         _queue.StartLoop();
-        
         _queue.EnqueueAction(ShowStatusMessage("Press space to roll the dice"));
         
         _cameraController = GameObject.Find("CameraController").GetComponent<CameraController>();
         _buyProperty = GameObject.Find("BuyUI").GetComponent<BuyProperty>();
-        
-        var _game = Game.Current.Value;
-        
-        playerRemovedSubscription = _game.PlayerRemoved.Subscribe(PlayerLeft);
-        
+
+        // Subscriptions
+        _playerBalanceSubscription = new IDisposable[_game.Seats];
+        foreach (var player in _game.Players)
+        {
+            var index = player.Index;
+            _playerBalanceSubscription[index] = player.Balance.Skip(1).Select(x => x + "ΔΜ").SubscribeToText(playerBalanceTexts[index]);
+        }
+        _playerRemovedSubscription = _game.PlayerRemoved.Subscribe(PlayerLeft);
+
         _socketIo.PlayerRolledDice += SocketIoOnPlayerRolledDice;
         _socketIo.PlayerMoved += SocketIoOnPlayerMoved;
         _socketIo.PlayerTurnChanged += SocketIoOnPlayerTurnChanged;
@@ -76,15 +85,20 @@ public class CurrentGame : MonoBehaviour
             }
         }
 
-        var currentPlayer = Player.GetPlayerById(Game.Current.Value.CurrentPlayerId);
-        UpdateBottomBarPlayerPlaying(currentPlayer);
+        var playerPlaying = Player.GetPlayerById(Game.Current.Value.CurrentPlayerId);
+        UpdateBottomBarPlayerPlaying(playerPlaying);
         
         _cameraController.SetUpCameras();
     }
     
     private void OnDestroy()
     {
-        playerRemovedSubscription?.Dispose();
+        foreach (var subscription in _playerBalanceSubscription)
+        {
+            subscription?.Dispose();
+        }
+
+        _playerRemovedSubscription?.Dispose();
         
         _socketIo.PlayerRolledDice -= SocketIoOnPlayerRolledDice;
         _socketIo.PlayerMoved -= SocketIoOnPlayerMoved;
@@ -130,11 +144,6 @@ public class CurrentGame : MonoBehaviour
     {
         _queue.EnqueueAction(ShowStatusMessage(player.Name + " plays again"));
     }
-    
-    private void PlayerBalanceChanged()
-    {
-        UpdateBottomBar();
-    }
 
     private void SocketIoOnPlayerSteppedOnChance(Player player, string text)
     {
@@ -155,9 +164,7 @@ public class CurrentGame : MonoBehaviour
 
     private void SetupPlayers()
     {
-        var game = Game.Current.Value;
-
-        foreach (var player in game.Players)
+        foreach (var player in _game.Players)
         {
             AddPlayer(player);
         }
@@ -179,11 +186,10 @@ public class CurrentGame : MonoBehaviour
     
     private void UpdateBottomBar()
     {
-        var game = Game.Current.Value;
         var selfPlayerId = _session.User.Id;
         var bottomBarTransform = bottomBar.transform;
 
-        if (game == null) return;
+        if (_game == null) return;
 
         for (var i = 0; i < 4; i++)
         {
@@ -196,7 +202,7 @@ public class CurrentGame : MonoBehaviour
             balanceTextMeshPro.text = "";
         }
 
-        foreach (var player in game.Players)
+        foreach (var player in _game.Players)
         {
             var index = player.Index;
         
@@ -220,10 +226,9 @@ public class CurrentGame : MonoBehaviour
     
     private void UpdateOwnedProperties()
     {
-        var game = Game.Current.Value;
         var properties = Game.Current.Value.Properties;
 
-        foreach (var player in game.Players)
+        foreach (var player in _game.Players)
         {
             var playerOwnedProperties = ownedProperties.transform.GetChild(player.Index);
             playerOwnedProperties.gameObject.SetActive(true);
