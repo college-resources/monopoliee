@@ -25,7 +25,6 @@ const GameManager = require('./library/gameManager')
 
 const SocketManager = require('./socket-io/socketManager')
 const SocketEmitter = require('./socket-io/socketEmitter')
-const PlayerEvents = require('./socket-io/playerEvents')
 
 const app = express()
 const server = http.Server(app)
@@ -74,21 +73,19 @@ io.on('connection', async socket => {
 
   let gameManager = new GameManager(getSessionUser())
   await gameManager.init()
-  let gameId
-  if (gameManager.current()) {
-    gameId = gameManager.current()._id
-    gameManager = null
-  }
-
   await SocketManager.getSocket({
-    game: gameId,
+    game: gameManager.current() && gameManager.current()._id,
     user: getSessionUser()._id,
     sessionId: socket.handshake.sessionID,
     socketId: socket.id
   })
+  gameManager = null
 
   socket.on('disconnect', async () => {
-    const playerEvents = new PlayerEvents(getSessionUser().lastGame)
+    const lastGameManager = new GameManager(getSessionUser())
+    await lastGameManager.init()
+    const lastGameHolder = lastGameManager.getGameHolder()
+    const playerEvents = lastGameHolder.getPlayerEvents()
     await playerEvents.onPlayerDisconnected(getSessionUser()._id)
     SocketManager.deleteSocket(socket.id)
   })
