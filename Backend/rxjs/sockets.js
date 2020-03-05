@@ -7,7 +7,7 @@ module.exports.socketDisconnect = new Subject()
 module.exports.socketUpdate = new Subject()
 
 this.socketConnect.subscribe(s => sockets.set(s.socketId, s))
-this.socketDisconnect.subscribe(s => sockets.delete(s.sessionId))
+this.socketDisconnect.subscribe(s => sockets.delete(s.socketId))
 this.socketUpdate.subscribe(s => sockets.set(s.socketId, s))
 
 module.exports.getSocketsForGame = gameId => {
