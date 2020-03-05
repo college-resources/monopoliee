@@ -1,6 +1,10 @@
 ﻿// #define MONOPOLIEE_PRODUCTION_MODE
 
+using System;
+using System.IO;
+using System.Net;
 using Newtonsoft.Json.Linq;
+using UniRx;
 using UniRx.Async;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -11,11 +15,23 @@ public static class ApiWrapper
     public const string HTTP_PROTOCOL = "http://";
     public const string WS_PROTOCOL = "ws://";
     public const string URL = "monopoliee.cores.gr/";
+    public const string COOKIE_NAME = "connect.sid";
     #else
     public const string HTTP_PROTOCOL = "http://";
     public const string WS_PROTOCOL = "ws://";
     public const string URL = "localhost:3000/";
+    public const string COOKIE_NAME = "connect.sid";
     #endif
+    
+    public static BehaviorSubject<string> Cookie { get; }
+
+    static ApiWrapper()
+    {
+        var req = new UnityWebRequest(HTTP_PROTOCOL + URL);
+        var cookie = req.GetRequestHeader("Cookie");
+        Cookie = new BehaviorSubject<string>(string.IsNullOrEmpty(cookie) ? "" : cookie);
+        Cookie.Subscribe(Debug.Log);
+    }
     
     public static async UniTask<JToken> AuthLogin(string username, string password)
     {
@@ -104,9 +120,42 @@ public static class ApiWrapper
         return await Upload("transaction/buy-current-property");
     }
 
+    public static async UniTask<JToken> SocketIo()
+    {
+        var www = UnityWebRequest.Get(HTTP_PROTOCOL + URL + "socket.io/?EIO=3&transport=polling");
+        
+        var resText = await GetTextAsync(www);
+        var json = resText.Split(new[] {":0"}, StringSplitOptions.None)[1];
+        var response = JToken.Parse(json);
+        
+        if (www.error != null)
+        {
+            throw new BadResponseException(www.error, response);
+        }
+        
+        return response;
+    }
+
     private static async UniTask<string> GetTextAsync(UnityWebRequest req)
     {
+        #if !UNITY_WEBGL || UNITY_EDITOR
+        req.SetRequestHeader("Cookie", Cookie.Value);
+        #endif
+        
         var op = await req.SendWebRequest();
+        if (op.error == "Cannot connect to destination host")
+        {
+            throw new IOException(op.error);
+        }
+
+        #if !UNITY_WEBGL || UNITY_EDITOR
+        var responseHeaders = req.GetResponseHeaders();
+        if (responseHeaders.ContainsKey("Set-Cookie") && responseHeaders["Set-Cookie"].StartsWith(COOKIE_NAME))
+        {
+            Cookie.OnNext(responseHeaders["Set-Cookie"]);
+        }
+        #endif
+        
         return op.downloadHandler.text;
     }
     
