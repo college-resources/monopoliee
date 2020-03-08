@@ -30,7 +30,7 @@ module.exports.updateSocketsUserFromSession = async (sessionId, userId) => {
   userId = userId && userId.toString()
   const socketsValues = [...sockets.values()]
   const sessionSockets = socketsValues.filter(s => s.sessionId === sessionId)
-  sessionSockets.forEach(s => this.socketUpdate.next({ ...s, user: userId }))
+  sessionSockets.forEach(s => this.socketUpdate.next({ ...s, user: userId, game: undefined }))
 }
 
 module.exports.values = sockets
