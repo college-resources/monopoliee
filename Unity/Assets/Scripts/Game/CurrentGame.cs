@@ -187,16 +187,16 @@ public class CurrentGame : MonoBehaviour
     
     private void UpdateBottomBar()
     {
-        var selfPlayerId = _session.User.Id;
-
         if (_game == null) return;
-
+        
         for (var i = 0; i < 4; i++)
         {
             playerNameTexts[i].text = "";
             playerBalanceTexts[i].text = "";
         }
-
+        
+        var selfPlayerId = _session.User.Id;
+        
         foreach (var player in _game.Players)
         {
             var index = player.Index;
