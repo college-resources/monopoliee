@@ -28,7 +28,7 @@ public class CameraController : MonoBehaviour
 
         if (cameraList.Count > 0)
         {
-            var currentPlayerId = _game.CurrentPlayerId;
+            var currentPlayerId = _game.CurrentPlayerId.Value;
             var index = Player.GetPlayerById(currentPlayerId).Index;
             cameraList[index].gameObject.SetActive(true);
         }

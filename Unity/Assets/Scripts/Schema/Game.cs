@@ -42,7 +42,7 @@ namespace Schema
         public List<Property> Properties { get; }
         public int Seats { get; }
         public BehaviorSubject<string> Status { get; }
-        public string CurrentPlayerId { get; private set; }
+        public BehaviorSubject<string> CurrentPlayerId { get; private set; }
         public BehaviorSubject<int> LobbyTime { get; }
 
         private Game(JToken game)
@@ -52,7 +52,7 @@ namespace Schema
             Properties = ((JArray) game["properties"]).Select(Property.GetProperty).ToList();
             Seats = (int) game["seats"];
             Status = new BehaviorSubject<string>((string) game["status"]);
-            CurrentPlayerId = (string) game["currentPlayer"];
+            CurrentPlayerId = new BehaviorSubject<string>((string) game["currentPlayer"]);
 
             LobbyTime = new BehaviorSubject<int>(0);
 
@@ -70,6 +70,7 @@ namespace Schema
             PlayerAdded?.Dispose();
             PlayerRemoved?.Dispose();
             Status?.Dispose();
+            CurrentPlayerId?.Dispose();
             LobbyTime?.Dispose();
             
             SocketIo.Instance.GameIsStarting -= SocketIoOnGameIsStarting;
@@ -102,7 +103,7 @@ namespace Schema
 
         public void UpdateCurrentPlayer(Player player)
         {
-            CurrentPlayerId = player.UserId;
+            CurrentPlayerId.OnNext(player.UserId);
         }
         
         public Property GetPropertyByIndex(int index)

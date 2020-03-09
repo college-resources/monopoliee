@@ -28,6 +28,7 @@ public class CurrentGame : MonoBehaviour
     private Game _game;
     private IDisposable[] _playerBalanceSubscription;
     private IDisposable _playerRemovedSubscription;
+    private IDisposable _playerTurnChangedSubscription;
     private readonly Session _session = Session.Instance.Value;
     private readonly SocketIo _socketIo = SocketIo.Instance;
 
@@ -64,10 +65,10 @@ public class CurrentGame : MonoBehaviour
             _playerBalanceSubscription[index] = player.Balance.Skip(1).Select(x => x + "ΔΜ").SubscribeToText(playerBalanceTexts[index]);
         }
         _playerRemovedSubscription = _game.PlayerRemoved.Subscribe(PlayerLeft);
+        _playerTurnChangedSubscription = _game.CurrentPlayerId.Subscribe(id => PlayerTurnChanged(Player.GetPlayerById(id)));
 
         _socketIo.PlayerRolledDice += SocketIoOnPlayerRolledDice;
         _socketIo.PlayerMoved += SocketIoOnPlayerMoved;
-        _socketIo.PlayerTurnChanged += SocketIoOnPlayerTurnChanged;
         _socketIo.PlayerPlaysAgain += SocketIoOnPlayerPlaysAgain;
         _socketIo.PlayerSteppedOnChance += SocketIoOnPlayerSteppedOnChance;
         _socketIo.PlayerSteppedOnCommunityChest += SocketIoOnPlayerSteppedOnCommunityChest;
@@ -85,7 +86,7 @@ public class CurrentGame : MonoBehaviour
             }
         }
 
-        var playerPlaying = Player.GetPlayerById(Game.Current.Value.CurrentPlayerId);
+        var playerPlaying = Player.GetPlayerById(Game.Current.Value.CurrentPlayerId.Value);
         UpdateBottomBarPlayerPlaying(playerPlaying);
         
         _cameraController.SetUpCameras();
@@ -99,10 +100,10 @@ public class CurrentGame : MonoBehaviour
         }
 
         _playerRemovedSubscription?.Dispose();
+        _playerTurnChangedSubscription?.Dispose();
         
         _socketIo.PlayerRolledDice -= SocketIoOnPlayerRolledDice;
         _socketIo.PlayerMoved -= SocketIoOnPlayerMoved;
-        _socketIo.PlayerTurnChanged -= SocketIoOnPlayerTurnChanged;
         _socketIo.PlayerPlaysAgain -= SocketIoOnPlayerPlaysAgain;
         _socketIo.PlayerSteppedOnChance -= SocketIoOnPlayerSteppedOnChance;
         _socketIo.PlayerSteppedOnCommunityChest -= SocketIoOnPlayerSteppedOnCommunityChest;
@@ -132,10 +133,9 @@ public class CurrentGame : MonoBehaviour
         }
     }
     
-    private void SocketIoOnPlayerTurnChanged(Player player)
+    private void PlayerTurnChanged(Player player)
     {
         _queue.EnqueueAction(ShowStatusMessage("It's " + player.Name + "'s turn"));
-
         UpdateBottomBarPlayerPlaying(player);
         _cameraController.FocusCameraOn(player);
     }

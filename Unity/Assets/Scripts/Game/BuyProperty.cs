@@ -37,7 +37,7 @@ public class BuyProperty : MonoBehaviour
 
     public IEnumerator DisplayCard(int location)
     {
-        if (Game.Current.Value.CurrentPlayerId == _session.User.Id &&
+        if (Game.Current.Value.CurrentPlayerId.Value == _session.User.Id &&
             string.IsNullOrEmpty(Property.GetPropertyByLocation(location).OwnerId))
         {
             _buy.SetActive(true);
