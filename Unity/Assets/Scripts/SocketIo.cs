@@ -16,7 +16,7 @@ public delegate void OnPlayerJoined(Player player);
 public delegate void OnPlayerLeft(Player player);
 public delegate void OnGameIsStarting();
 public delegate void OnGameLobbyTimer(int remainingSeconds);
-public delegate void OnGameStarted();
+public delegate void OnGameStarted(Player firstPlayer);
 public delegate void OnPlayerRolledDice(Player player, int[] dice);
 public delegate void OnPlayerMoved(Player player, int location);
 public delegate void OnPlayerTurnChanged(Player player);
@@ -207,9 +207,8 @@ public class SocketIo : MonoBehaviour
             case "gameStarted":
             {
                 var firstPlayer = Player.GetPlayerById(array[1]["firstPlayer"].ToString());
-                CurrentGame().UpdateCurrentPlayer(firstPlayer);
-                
-                GameStarted?.Invoke();
+
+                GameStarted?.Invoke(firstPlayer);
                 break;
             }
             case "playerRolledDice":

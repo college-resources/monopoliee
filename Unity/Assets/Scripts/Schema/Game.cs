@@ -139,8 +139,9 @@ namespace Schema
             LobbyTime.OnNext(remainingSeconds);
         }
         
-        private void SocketIoOnGameStarted()
+        private void SocketIoOnGameStarted(Player firstPlayer)
         {
+            UpdateCurrentPlayer(firstPlayer);
             Status.OnNext("running");
         }
         
