@@ -62,6 +62,7 @@ namespace Schema
             SocketIo.Instance.PlayerJoined += SocketIoOnPlayerJoined;
             SocketIo.Instance.PlayerLeft += SocketIoOnPlayerLeft;
             SocketIo.Instance.PlayerTurnChanged += SocketIoOnPlayerTurnChanged;
+            SocketIo.Instance.PropertyOwnerChanged += SocketIoOnPropertyOwnerChanged;
         }
 
         ~Game()
@@ -77,6 +78,7 @@ namespace Schema
             SocketIo.Instance.PlayerJoined -= SocketIoOnPlayerJoined;
             SocketIo.Instance.PlayerLeft -= SocketIoOnPlayerLeft;
             SocketIo.Instance.PlayerTurnChanged -= SocketIoOnPlayerTurnChanged;
+            SocketIo.Instance.PropertyOwnerChanged -= SocketIoOnPropertyOwnerChanged;
             
             foreach (var player in Players)
             {
@@ -162,6 +164,12 @@ namespace Schema
         private void SocketIoOnPlayerTurnChanged(Player player)
         {
             UpdateCurrentPlayer(player);
+        }
+
+        private void SocketIoOnPropertyOwnerChanged(int propertyIndex, string ownerId)
+        {
+            var property = GetPropertyByIndex(propertyIndex);
+            property.OwnerId = ownerId;
         }
     }
 }

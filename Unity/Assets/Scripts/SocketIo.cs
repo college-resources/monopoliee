@@ -262,10 +262,6 @@ public class SocketIo : MonoBehaviour
             {
                 var propertyIndex = (int) array[1]["propertyIndex"];
                 var ownerId = array[1]["ownerId"].ToString();
-
-                var property = CurrentGame().GetPropertyByIndex(propertyIndex);
-                property.OwnerId = ownerId;
-
                 PropertyOwnerChanged?.Invoke(propertyIndex, ownerId);
                 break;
             }
