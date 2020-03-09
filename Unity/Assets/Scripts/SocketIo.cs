@@ -267,6 +267,4 @@ public class SocketIo : MonoBehaviour
             }
         }
     }
-
-    private static Game CurrentGame() => Game.Current.Value;
 }
