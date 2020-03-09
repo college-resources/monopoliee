@@ -221,10 +221,6 @@ public class SocketIo : MonoBehaviour
             case "playerTurnChanged":
             {
                 var player = Player.GetPlayerById(array[1]["user"].ToString());
-                CurrentGame().UpdateCurrentPlayer(player);
-
-                Debug.Log(player.UserId);
-                
                 PlayerTurnChanged?.Invoke(player);
                 break;
             }

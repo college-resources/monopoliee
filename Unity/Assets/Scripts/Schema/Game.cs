@@ -61,6 +61,7 @@ namespace Schema
             SocketIo.Instance.GameStarted += SocketIoOnGameStarted;
             SocketIo.Instance.PlayerJoined += SocketIoOnPlayerJoined;
             SocketIo.Instance.PlayerLeft += SocketIoOnPlayerLeft;
+            SocketIo.Instance.PlayerTurnChanged += SocketIoOnPlayerTurnChanged;
         }
 
         ~Game()
@@ -75,6 +76,7 @@ namespace Schema
             SocketIo.Instance.GameStarted -= SocketIoOnGameStarted;
             SocketIo.Instance.PlayerJoined -= SocketIoOnPlayerJoined;
             SocketIo.Instance.PlayerLeft -= SocketIoOnPlayerLeft;
+            SocketIo.Instance.PlayerTurnChanged -= SocketIoOnPlayerTurnChanged;
             
             foreach (var player in Players)
             {
@@ -155,6 +157,11 @@ namespace Schema
         {
             Players.Remove(player);
             PlayerRemoved.OnNext(player);
+        }
+
+        private void SocketIoOnPlayerTurnChanged(Player player)
+        {
+            UpdateCurrentPlayer(player);
         }
     }
 }
