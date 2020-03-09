@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using NativeWebSocket;
 using Newtonsoft.Json.Linq;
 using Schema;
 using UniRx;
-using UniRx.Async;
 using UnityEngine;
-using UnityEngine.Networking;
 
 public delegate void OnPlayerJoined(Player player);
 public delegate void OnPlayerLeft(Player player);
