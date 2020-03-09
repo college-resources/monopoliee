@@ -9994,6 +9994,11 @@ MonoBehaviour:
   playerList: []
   route: {fileID: 6087595704745296695}
   statusMessage: {fileID: 487851892}
+  playerNameTexts:
+  - {fileID: 454009745}
+  - {fileID: 1690559669}
+  - {fileID: 41072731}
+  - {fileID: 2133492672}
   playerBalanceTexts:
   - {fileID: 1220674870}
   - {fileID: 1531090018}

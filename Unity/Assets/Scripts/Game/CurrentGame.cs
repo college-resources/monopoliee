@@ -20,6 +20,7 @@ public class CurrentGame : MonoBehaviour
     public List<GameObject> playerList;
     public Route route;
     public TextMeshProUGUI statusMessage;
+    public TextMeshProUGUI[] playerNameTexts = new TextMeshProUGUI[4];
     public TextMeshProUGUI[] playerBalanceTexts = new TextMeshProUGUI[4];
 
     private BuyProperty _buyProperty;
@@ -187,40 +188,29 @@ public class CurrentGame : MonoBehaviour
     private void UpdateBottomBar()
     {
         var selfPlayerId = _session.User.Id;
-        var bottomBarTransform = bottomBar.transform;
 
         if (_game == null) return;
 
         for (var i = 0; i < 4; i++)
         {
-            var nameTextTransform = bottomBarTransform.GetChild(i).GetChild(0);
-            var balanceTextTransform = bottomBarTransform.GetChild(i).GetChild(1);
-            var nameTextMeshPro = nameTextTransform.GetComponent<TextMeshProUGUI>();
-            var balanceTextMeshPro = balanceTextTransform.GetComponent<TextMeshProUGUI>();
-
-            nameTextMeshPro.text = "";
-            balanceTextMeshPro.text = "";
+            playerNameTexts[i].text = "";
+            playerBalanceTexts[i].text = "";
         }
 
         foreach (var player in _game.Players)
         {
             var index = player.Index;
-        
-            var nameTextTransform = bottomBarTransform.GetChild(index).GetChild(0);
-            var balanceTextTransform = bottomBarTransform.GetChild(index).GetChild(1);
-            var nameTextMeshPro = nameTextTransform.GetComponent<TextMeshProUGUI>();
-            var balanceTextMeshPro = balanceTextTransform.GetComponent<TextMeshProUGUI>();
             
             if (player.UserId == selfPlayerId)
             {
-                nameTextMeshPro.text = "•" + player.Name + "•";
+                playerNameTexts[index].text = "•" + player.Name + "•";
             }
             else
             {
-                nameTextMeshPro.text = player.Name;
+                playerNameTexts[index].text = player.Name;
             }
             
-            balanceTextMeshPro.text = player.Balance.Value + "ΔΜ";
+            playerBalanceTexts[index].text = player.Balance.Value + "ΔΜ";
         }
     }
     
