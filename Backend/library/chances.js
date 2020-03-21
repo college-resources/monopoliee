@@ -164,5 +164,56 @@ module.exports = [
       await game.save()
       await gameHolder.update()
     }
+  },
+  {
+    text: 'Πέρασες την θεωρία του μαθήματος. Παρε 50ΔΜ.',
+    action: async (userId, gameHolder) => {
+      const currentGame = gameHolder.getJSON()
+      const player = currentGame.players.find(p => p.user.toString() === userId.toString())
+
+      const game = await Game.findById(currentGame._id)
+      const gamePlayer = game.players.find(p => p.user.toString() === userId.toString())
+
+      gamePlayer.balance += 50
+      gameHolder.getPlayerEvents().onPlayerGotPaid(player.user, 50)
+      gameHolder.getPlayerEvents().onPlayerBalanceChanged(player.user, gamePlayer.balance)
+
+      await game.save()
+      await gameHolder.update()
+    }
+  },
+  {
+    text: 'Πέρασες την θεωρία του μαθήματος. Παρε 150ΔΜ.',
+    action: async (userId, gameHolder) => {
+      const currentGame = gameHolder.getJSON()
+      const player = currentGame.players.find(p => p.user.toString() === userId.toString())
+
+      const game = await Game.findById(currentGame._id)
+      const gamePlayer = game.players.find(p => p.user.toString() === userId.toString())
+
+      gamePlayer.balance += 150
+      gameHolder.getPlayerEvents().onPlayerGotPaid(player.user, 150)
+      gameHolder.getPlayerEvents().onPlayerBalanceChanged(player.user, gamePlayer.balance)
+
+      await game.save()
+      await gameHolder.update()
+    }
+  },
+  {
+    text: 'Πέρασες την θεωρία του μαθήματος. Παρε 100ΔΜ.',
+    action: async (userId, gameHolder) => {
+      const currentGame = gameHolder.getJSON()
+      const player = currentGame.players.find(p => p.user.toString() === userId.toString())
+
+      const game = await Game.findById(currentGame._id)
+      const gamePlayer = game.players.find(p => p.user.toString() === userId.toString())
+
+      gamePlayer.balance += 100
+      gameHolder.getPlayerEvents().onPlayerGotPaid(player.user, 100)
+      gameHolder.getPlayerEvents().onPlayerBalanceChanged(player.user, gamePlayer.balance)
+
+      await game.save()
+      await gameHolder.update()
+    }
   }
 ]
