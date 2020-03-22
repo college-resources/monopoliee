@@ -1,8 +1,7 @@
-// #define MONOPOLIEE_PRODUCTION_MODE
+﻿// #define MONOPOLIEE_PRODUCTION_MODE
 
 using System;
 using System.IO;
-using System.Net;
 using Newtonsoft.Json.Linq;
 using UniRx;
 using UniRx.Async;
