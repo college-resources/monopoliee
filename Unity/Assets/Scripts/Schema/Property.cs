@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using UniRx;
 
 namespace Schema
 {
@@ -44,14 +45,14 @@ namespace Schema
         private bool _mortgaged;
 
         public string Name => _name;
-        public string OwnerId { get; set; }
+        public BehaviorSubject<string> OwnerId { get; }
         public bool Mortgaged => _mortgaged;
         public int Location { get; }
 
         private Property(JToken property)
         {
             _name = (string) property["name"];
-            OwnerId = (string) property["owner"];
+            OwnerId = new BehaviorSubject<string> ((string) property["owner"]);
             _mortgaged = (bool) property["mortgaged"];
             Location = (int) property["location"];
         }

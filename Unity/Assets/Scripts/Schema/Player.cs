@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using UniRx;
 
@@ -30,7 +31,14 @@ namespace Schema
         
         public static Player GetPlayerById(string userId)
         {
-            return _players[userId];
+            try
+            {
+                return _players[userId];
+            }
+            catch (ArgumentNullException)
+            {
+                return null;
+            }
         }
 
         #endregion

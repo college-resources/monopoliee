@@ -9980,7 +9980,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   diceContainer: {fileID: 1597719655}
-  bottomBar: {fileID: 1913277154}
   chanceCard: {fileID: 1904583802}
   communityChestCard: {fileID: 981458087}
   nowPlayingPlayer: {fileID: 1074751435}

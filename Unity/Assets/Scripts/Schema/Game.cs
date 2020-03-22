@@ -42,7 +42,7 @@ namespace Schema
         public List<Property> Properties { get; }
         public int Seats { get; }
         public BehaviorSubject<string> Status { get; }
-        public BehaviorSubject<string> CurrentPlayerId { get; private set; }
+        public BehaviorSubject<string> CurrentPlayerId { get; }
         public BehaviorSubject<int> LobbyTime { get; }
 
         private Game(JToken game)
@@ -169,8 +169,7 @@ namespace Schema
 
         private void SocketIoOnPropertyOwnerChanged(int propertyIndex, string ownerId)
         {
-            var property = GetPropertyByIndex(propertyIndex);
-            property.OwnerId = ownerId;
+            Properties[propertyIndex].OwnerId.OnNext(ownerId);
         }
     }
 }

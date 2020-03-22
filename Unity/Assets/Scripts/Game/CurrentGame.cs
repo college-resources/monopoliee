@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Schema;
 using TMPro;
 using UnityEngine;
@@ -10,7 +11,6 @@ using UniRx;
 public class CurrentGame : MonoBehaviour
 {
     public Dice diceContainer;
-    public GameObject bottomBar;
     public GameObject chanceCard;
     public GameObject communityChestCard;
     public GameObject nowPlayingPlayer;
@@ -27,11 +27,13 @@ public class CurrentGame : MonoBehaviour
     private CameraController _cameraController;
     private CoroutineQueue _queue;
     private Game _game;
-    private IDisposable[] _playerBalanceSubscription;
+    private IDisposable[] _playerBalanceSubscriptions;
     private IDisposable _playerRemovedSubscription;
     private IDisposable _playerTurnChangedSubscription;
+    private IDisposable[] _propertyOwnerChangedSubscriptions;
     private readonly Session _session = Session.Instance.Value;
     private readonly SocketIo _socketIo = SocketIo.Instance;
+    private readonly Transform[,] _propertyDisplays = new Transform[4, 28];
 
     private static readonly Vector3[] BottomBarPlayerDisplays = {
         new Vector3(-720, 0, 0),
@@ -58,22 +60,15 @@ public class CurrentGame : MonoBehaviour
         _cameraController = GameObject.Find("CameraController").GetComponent<CameraController>();
         _buyProperty = GameObject.Find("BuyUI").GetComponent<BuyProperty>();
 
-        // Subscriptions
-        _playerBalanceSubscription = new IDisposable[_game.Seats];
-        foreach (var player in _game.Players)
-        {
-            var index = player.Index;
-            _playerBalanceSubscription[index] = player.Balance.Skip(1).Select(x => x + "ΔΜ").SubscribeToText(playerBalanceTexts[index]);
-        }
-        _playerRemovedSubscription = _game.PlayerRemoved.Subscribe(PlayerLeft);
-        _playerTurnChangedSubscription = _game.CurrentPlayerId.Subscribe(id => PlayerTurnChanged(Player.GetPlayerById(id)));
+        InitializePropertyDisplays();
+        InitializeSubscriptions();
 
+        // SocketIO events
         _socketIo.PlayerRolledDice += SocketIoOnPlayerRolledDice;
         _socketIo.PlayerMoved += SocketIoOnPlayerMoved;
         _socketIo.PlayerPlaysAgain += SocketIoOnPlayerPlaysAgain;
         _socketIo.PlayerSteppedOnChance += SocketIoOnPlayerSteppedOnChance;
         _socketIo.PlayerSteppedOnCommunityChest += SocketIoOnPlayerSteppedOnCommunityChest;
-        _socketIo.PropertyOwnerChanged += SocketIoOnPropertyOwnerChanged;
 
         UpdateOwnedProperties();
         UpdateBottomBar();
@@ -95,7 +90,12 @@ public class CurrentGame : MonoBehaviour
     
     private void OnDestroy()
     {
-        foreach (var subscription in _playerBalanceSubscription)
+        foreach (var subscription in _playerBalanceSubscriptions)
+        {
+            subscription?.Dispose();
+        }
+        
+        foreach (var subscription in _propertyOwnerChangedSubscriptions)
         {
             subscription?.Dispose();
         }
@@ -108,7 +108,6 @@ public class CurrentGame : MonoBehaviour
         _socketIo.PlayerPlaysAgain -= SocketIoOnPlayerPlaysAgain;
         _socketIo.PlayerSteppedOnChance -= SocketIoOnPlayerSteppedOnChance;
         _socketIo.PlayerSteppedOnCommunityChest -= SocketIoOnPlayerSteppedOnCommunityChest;
-        _socketIo.PropertyOwnerChanged -= SocketIoOnPropertyOwnerChanged;
     }
 
     private void PlayerLeft(Player player)
@@ -158,9 +157,34 @@ public class CurrentGame : MonoBehaviour
         _queue.EnqueueWait(1f);
     }
     
-    private void SocketIoOnPropertyOwnerChanged(int propertyIndex, string ownerId)
+    private void PropertyOwnerChanged(int propertyIndex, string currentOwnerId, string previousOwnerId)
     {
-        UpdateOwnedProperties();
+        Transform propertyComponent;
+        Image image;
+        Color tempColor;
+        
+        if (!string.IsNullOrEmpty(previousOwnerId))
+        {
+            var previousOwner = Player.GetPlayerById(previousOwnerId);
+            
+            // Update previous owner's property UI
+            propertyComponent = _propertyDisplays[previousOwner.Index, propertyIndex];
+            image = propertyComponent.GetComponent<Image>();
+            tempColor = image.color;
+            tempColor.a = 0.4f;
+            image.color = tempColor;
+        }
+        
+        var currentOwner = Player.GetPlayerById(currentOwnerId);
+
+        if (currentOwner == null) return;
+        
+        // Update current owner's property UI
+        propertyComponent = _propertyDisplays[currentOwner.Index, propertyIndex];
+        image = propertyComponent.GetComponent<Image>();
+        tempColor = image.color;
+        tempColor.a = 1f;
+        image.color = tempColor;
     }
 
     private void SetupPlayers()
@@ -216,7 +240,7 @@ public class CurrentGame : MonoBehaviour
     
     private void UpdateOwnedProperties()
     {
-        var properties = Game.Current.Value.Properties;
+        var properties = _game.Properties;
 
         foreach (var player in _game.Players)
         {
@@ -231,10 +255,49 @@ public class CurrentGame : MonoBehaviour
                 
                 var image = propertyComponent.GetComponent<Image>();
                 var tempColor = image.color;
-                tempColor.a = property.OwnerId == player.UserId ? 1f : 0.4f;
+                tempColor.a = property.OwnerId.Value == player.UserId ? 1f : 0.4f;
                 image.color = tempColor;
             }
         }
+    }
+
+    private void InitializePropertyDisplays()
+    {
+        var properties = _game.Properties;
+        
+        foreach (var player in _game.Players)
+        {
+            var playerOwnedProperties = ownedProperties.transform.GetChild(player.Index);
+            playerOwnedProperties.gameObject.SetActive(true);
+            
+            foreach (var (property, index) in properties.Select((value, index) => ( value, index )))
+            {
+                var propertyComponent = playerOwnedProperties.Find(property.Location.ToString());
+                _propertyDisplays[player.Index, index] = propertyComponent;
+            }
+        }
+    }
+
+    private void InitializeSubscriptions()
+    {
+        _playerBalanceSubscriptions = new IDisposable[_game.Seats];
+        foreach (var player in _game.Players)
+        {
+            var index = player.Index;
+            _playerBalanceSubscriptions[index] = player.Balance.Skip(1).Select(x => x + "ΔΜ").SubscribeToText(playerBalanceTexts[index]);
+        }
+        
+        _propertyOwnerChangedSubscriptions = new IDisposable[28];
+        foreach (var (property, index) in _game.Properties.Select((value, index) => ( value, index )))
+        {
+            _propertyOwnerChangedSubscriptions[index] = property.OwnerId
+                .StartWith(string.Empty)
+                .Pairwise()
+                .Subscribe(owners => PropertyOwnerChanged(index, owners.Current, owners.Previous));
+        }
+        
+        _playerRemovedSubscription = _game.PlayerRemoved.Subscribe(PlayerLeft);
+        _playerTurnChangedSubscription = _game.CurrentPlayerId.Subscribe(id => PlayerTurnChanged(Player.GetPlayerById(id)));
     }
     
     private IEnumerator ShowStatusMessage(string text)
