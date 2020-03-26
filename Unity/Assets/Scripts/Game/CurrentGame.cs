@@ -28,6 +28,7 @@ public class CurrentGame : MonoBehaviour
     private CoroutineQueue _queue;
     private Game _game;
     private IDisposable[] _playerBalanceSubscriptions;
+    private IDisposable[] _playerMovedSubscriptions;
     private IDisposable _playerRemovedSubscription;
     private IDisposable _playerTurnChangedSubscription;
     private IDisposable[] _propertyOwnerChangedSubscriptions;
@@ -65,7 +66,6 @@ public class CurrentGame : MonoBehaviour
 
         // SocketIO events
         _socketIo.PlayerRolledDice += SocketIoOnPlayerRolledDice;
-        _socketIo.PlayerMoved += SocketIoOnPlayerMoved;
         _socketIo.PlayerPlaysAgain += SocketIoOnPlayerPlaysAgain;
         _socketIo.PlayerSteppedOnChance += SocketIoOnPlayerSteppedOnChance;
         _socketIo.PlayerSteppedOnCommunityChest += SocketIoOnPlayerSteppedOnCommunityChest;
@@ -90,24 +90,20 @@ public class CurrentGame : MonoBehaviour
     
     private void OnDestroy()
     {
-        foreach (var subscription in _playerBalanceSubscriptions)
-        {
-            subscription?.Dispose();
-        }
-        
-        foreach (var subscription in _propertyOwnerChangedSubscriptions)
-        {
-            subscription?.Dispose();
-        }
+        foreach (var subscription in _playerBalanceSubscriptions) subscription?.Dispose();
+        foreach (var subscription in _playerMovedSubscriptions) subscription?.Dispose();
+        foreach (var subscription in _propertyOwnerChangedSubscriptions) subscription?.Dispose();
 
         _playerRemovedSubscription?.Dispose();
         _playerTurnChangedSubscription?.Dispose();
         
         _socketIo.PlayerRolledDice -= SocketIoOnPlayerRolledDice;
-        _socketIo.PlayerMoved -= SocketIoOnPlayerMoved;
         _socketIo.PlayerPlaysAgain -= SocketIoOnPlayerPlaysAgain;
         _socketIo.PlayerSteppedOnChance -= SocketIoOnPlayerSteppedOnChance;
         _socketIo.PlayerSteppedOnCommunityChest -= SocketIoOnPlayerSteppedOnCommunityChest;
+
+        _game.Dispose();
+        _game = null;
     }
 
     private void PlayerLeft(Player player)
@@ -122,14 +118,15 @@ public class CurrentGame : MonoBehaviour
         _queue.EnqueueWait(1f);
     }
     
-    private void SocketIoOnPlayerMoved(Player player, int location)
+    private void PlayerMoved(Player player, int previousLocation, int newLocation)
     {
         var playerObject = playerList[player.Index];
-        _queue.EnqueueAction(playerObject.GetComponent<PlayerMovement>().Move(location));
+        _queue.EnqueueAction(playerObject.GetComponent<PlayerMovement>().Move(previousLocation, newLocation));
         _queue.EnqueueWait(1f);
-        if (Property.GetPropertyByLocation(location) != null)
+        
+        if (Property.GetPropertyByLocation(newLocation) != null)
         {
-            _queue.EnqueueAction(_buyProperty.DisplayCard(location));
+            _queue.EnqueueAction(_buyProperty.DisplayCard(newLocation));
         }
     }
     
@@ -197,8 +194,8 @@ public class CurrentGame : MonoBehaviour
 
     private void AddPlayer(Player player)
     {
-        var playerPos = route.childNodeList[player.Position].transform.position + Offsets[player.Index];
-        var playerRotation = new Vector3(0, player.Position / 10 * 90, 0);
+        var playerPos = route.childNodeList[player.Position.Value].transform.position + Offsets[player.Index];
+        var playerRotation = new Vector3(0, player.Position.Value / 10 * 90, 0);
         var newPlayer = Instantiate(playerPrefabs[player.Index], playerPos, Quaternion.Euler(playerRotation), players.transform);
         newPlayer.GetComponent<PlayerMovement>().offset = Offsets[player.Index];
     }
@@ -287,6 +284,17 @@ public class CurrentGame : MonoBehaviour
             _playerBalanceSubscriptions[index] = player.Balance.Skip(1).Select(x => x + "ΔΜ").SubscribeToText(playerBalanceTexts[index]);
         }
         
+        _playerMovedSubscriptions = new IDisposable[_game.Seats];
+        foreach (var player in _game.Players)
+        {
+            var index = player.Index;
+            _playerMovedSubscriptions[index] = player.Position
+                .Skip(1)
+                .StartWith(player.Position.Value)
+                .Pairwise()
+                .Subscribe(location => PlayerMoved(player, location.Previous, location.Current));
+        }
+        
         _propertyOwnerChangedSubscriptions = new IDisposable[28];
         foreach (var (property, index) in _game.Properties.Select((value, index) => ( value, index )))
         {
@@ -307,7 +315,7 @@ public class CurrentGame : MonoBehaviour
         statusMessage.text = "";
         chanceCard.SetActive(false);
     }
-
+    
     private IEnumerator DisplayChanceCard(string text)
     {
         chanceCard.SetActive(true);

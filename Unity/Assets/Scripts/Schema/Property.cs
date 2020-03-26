@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using UniRx;
 
 namespace Schema
 {
-    public class Property
+    public class Property : IDisposable
     {
         #region Caching
 
@@ -40,8 +41,8 @@ namespace Schema
 
         #endregion
 
-        private string _id;
-        private string _name;
+        private readonly string _id;
+        private readonly string _name;
         private bool _mortgaged;
 
         public string Name => _name;
@@ -51,20 +52,20 @@ namespace Schema
 
         private Property(JToken property)
         {
+            _id = (string) property["_id"];
             _name = (string) property["name"];
             OwnerId = new BehaviorSubject<string> ((string) property["owner"]);
             _mortgaged = (bool) property["mortgaged"];
             Location = (int) property["location"];
         }
-        
-        public static void ClearCache()
+
+        public void Dispose()
         {
-            _properties?.Clear();
-        }
-        
-        public void Delete()
-        {
+            OwnerId?.Dispose();
+            
             _properties.Remove(_id);
+            
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -5,7 +5,7 @@ using UniRx;
 
 namespace Schema
 {
-    public class Player
+    public class Player : IDisposable
     {
         #region Caching
 
@@ -45,7 +45,7 @@ namespace Schema
 
         public string UserId { get; }
         public BehaviorSubject<int> Balance { get; }
-        public int Position { get; set; }
+        public BehaviorSubject<int> Position { get; }
         public int DuplicateRolls { get; }
         public bool Jailed { get; }
         public int Index { get; }
@@ -55,40 +55,39 @@ namespace Schema
         {
             UserId = (string) player["user"];
             Balance = new BehaviorSubject<int>((int) player["balance"]);
-            Position = (int) player["position"];
+            Position = new BehaviorSubject<int>((int) player["position"]);
             DuplicateRolls = (int) player["duplicateRolls"];
             Jailed = (bool) player["jailed"];
             Index = (int) player["index"];
             Name = (string) player["name"];
 
             SocketIo.Instance.PlayerBalanceChanged += SocketIoOnPlayerBalanceChanged;
+            SocketIo.Instance.PlayerMoved += SocketIoOnPlayerMoved;
         }
 
-        ~Player()
-        {
-            Balance?.Dispose();
-            
-            SocketIo.Instance.PlayerBalanceChanged -= SocketIoOnPlayerBalanceChanged;
-        }
-
-        public void SetPosition(int position)
-        {
-            Position = position;
-        }
-        
-        public static void ClearCache()
-        {
-            _players?.Clear();
-        }
-
-        public void Delete()
-        {
-            _players.Remove(UserId);
-        }
-        
         private void SocketIoOnPlayerBalanceChanged(Player player, int balance)
         {
             player.Balance.OnNext(balance);
+        }
+
+        private void SocketIoOnPlayerMoved(Player player, int location)
+        {
+            if (player != this) return;
+            
+            Position.OnNext(location);
+        }
+
+        public void Dispose()
+        {
+            Balance?.Dispose();
+            Position?.Dispose();
+                
+            SocketIo.Instance.PlayerBalanceChanged -= SocketIoOnPlayerBalanceChanged;
+            SocketIo.Instance.PlayerMoved -= SocketIoOnPlayerMoved;
+                
+            _players.Remove(UserId);
+            
+            GC.SuppressFinalize(this);
         }
     }
 }

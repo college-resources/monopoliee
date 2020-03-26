@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Schema
 {
-    public class Game
+    public class Game : IDisposable
     {
         #region Caching
 
@@ -65,50 +65,16 @@ namespace Schema
             SocketIo.Instance.PropertyOwnerChanged += SocketIoOnPropertyOwnerChanged;
         }
 
-        ~Game()
-        {
-            PlayerAdded?.Dispose();
-            PlayerRemoved?.Dispose();
-            Status?.Dispose();
-            CurrentPlayerId?.Dispose();
-            LobbyTime?.Dispose();
-            
-            SocketIo.Instance.GameIsStarting -= SocketIoOnGameIsStarting;
-            SocketIo.Instance.GameLobbyTimer -= SocketIoOnGameLobbyTimer;
-            SocketIo.Instance.GameStarted -= SocketIoOnGameStarted;
-            SocketIo.Instance.PlayerJoined -= SocketIoOnPlayerJoined;
-            SocketIo.Instance.PlayerLeft -= SocketIoOnPlayerLeft;
-            SocketIo.Instance.PlayerTurnChanged -= SocketIoOnPlayerTurnChanged;
-            SocketIo.Instance.PropertyOwnerChanged -= SocketIoOnPropertyOwnerChanged;
-            
-            foreach (var player in Players)
-            {
-                player.Delete();
-            }
-            
-            foreach (var property in Properties)
-            {
-                property.Delete();
-            }
-            
-            _games.Remove(Id);
-        }
-
         public static void ClearCache()
         {
-            _games?.Clear();
-            Player.ClearCache();
-            Property.ClearCache();
-        }
-
-        public void UpdateCurrentPlayer(Player player)
-        {
-            CurrentPlayerId.OnNext(player.UserId);
-        }
-        
-        public Property GetPropertyByIndex(int index)
-        {
-            return Properties[index];
+            if (_games == null) return;
+            
+            foreach (var game in _games)
+            {
+                game.Value.Dispose(false);
+            }
+            
+            _games.Clear();
         }
 
         public string SeatsToString() => $"{Players.Count}/{Seats}";
@@ -130,8 +96,8 @@ namespace Schema
                 Debug.Log(e); // TODO: Show error to player
             }
             
+            Dispose();
             Current.OnNext(null);
-            _games.Remove(Id);
         }
         
         private void SocketIoOnGameIsStarting()
@@ -146,7 +112,7 @@ namespace Schema
         
         private void SocketIoOnGameStarted(Player firstPlayer)
         {
-            UpdateCurrentPlayer(firstPlayer);
+            CurrentPlayerId.OnNext(firstPlayer.UserId);
             Status.OnNext("running");
         }
         
@@ -164,12 +130,48 @@ namespace Schema
 
         private void SocketIoOnPlayerTurnChanged(Player player)
         {
-            UpdateCurrentPlayer(player);
+            CurrentPlayerId.OnNext(player.UserId);
         }
 
         private void SocketIoOnPropertyOwnerChanged(int propertyIndex, string ownerId)
         {
             Properties[propertyIndex].OwnerId.OnNext(ownerId);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        private void Dispose(bool removeFromCache)
+        {
+            PlayerAdded?.Dispose();
+            PlayerRemoved?.Dispose();
+            Status?.Dispose();
+            CurrentPlayerId?.Dispose();
+            LobbyTime?.Dispose();
+        
+            SocketIo.Instance.GameIsStarting -= SocketIoOnGameIsStarting;
+            SocketIo.Instance.GameLobbyTimer -= SocketIoOnGameLobbyTimer;
+            SocketIo.Instance.GameStarted -= SocketIoOnGameStarted;
+            SocketIo.Instance.PlayerJoined -= SocketIoOnPlayerJoined;
+            SocketIo.Instance.PlayerLeft -= SocketIoOnPlayerLeft;
+            SocketIo.Instance.PlayerTurnChanged -= SocketIoOnPlayerTurnChanged;
+            SocketIo.Instance.PropertyOwnerChanged -= SocketIoOnPropertyOwnerChanged;
+        
+            foreach (var player in Players)
+            {
+                player?.Dispose();
+            }
+        
+            foreach (var property in Properties)
+            {
+                property?.Dispose();
+            }
+        
+            if (removeFromCache) _games.Remove(Id);
+            
+            GC.SuppressFinalize(this);
         }
     }
 }

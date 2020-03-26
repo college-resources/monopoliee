@@ -34,6 +34,8 @@ public class CurrentLobby : MonoBehaviour
         playerAddedSubscription?.Dispose();
         playerRemovedSubscription?.Dispose();
         lobbyTimeSubscription?.Dispose();
+
+        _game = null;
     }
 
     private void PlayerJoined(Player player)

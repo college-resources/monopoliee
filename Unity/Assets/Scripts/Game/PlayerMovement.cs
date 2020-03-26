@@ -1,25 +1,16 @@
 ﻿using System.Collections;
-using Schema;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    private int _routePosition;
-    private Player _player;
     public float rotationTime = 1f;
     public Route currentRoute;
     public Vector3 offset;
 
-    private void Start()
+    public IEnumerator Move(int previousLocation, int newLocation)
     {
-        var game = Game.Current.Value;
-        _player = game.Players[transform.GetSiblingIndex()];
-    }
-
-    public IEnumerator Move(int location)
-    {
-        _routePosition = _player.Position;
-        var steps = location - _player.Position;
+        var _routePosition = previousLocation;
+        var steps = newLocation - _routePosition;
         if (steps < 0) steps += 40;
         
         while (steps > 0)
@@ -36,23 +27,22 @@ public class PlayerMovement : MonoBehaviour
             
             if (_routePosition % 10 == 0)
             {
-                yield return StartCoroutine(RotateMe(Vector3.up * 90, rotationTime));
+                yield return StartCoroutine(Rotate(Vector3.up * 90, rotationTime));
             }
         }
-
-        _player.SetPosition(location);
     }
     
-    private IEnumerator RotateMe(Vector3 byAngles, float inTime) 
+    private IEnumerator Rotate(Vector3 byAngles, float inTime) 
     {
         var thisTransform = transform;
+        
         var fromAngle = thisTransform.rotation;
         var toAngle = Quaternion.Euler(thisTransform.eulerAngles + byAngles);
-        for(var t = 0f; t <= 1; t += Time.deltaTime / inTime) {
-            transform.rotation = Quaternion.Slerp(fromAngle, toAngle, t);
+        for (var t = 0f; t <= 1; t += Time.deltaTime / inTime) {
+            thisTransform.rotation = Quaternion.Slerp(fromAngle, toAngle, t);
             yield return null;
         }
-        transform.rotation = toAngle;
+        thisTransform.rotation = toAngle;
     }
 
     private bool Step(Vector3 goal)
