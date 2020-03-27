@@ -62,7 +62,7 @@ public static class ApiWrapper
 
     public static async UniTask<JToken> GameNew(int seats, bool inviteOnly = false)
     {
-        WWWForm form = new WWWForm();
+        var form = new WWWForm();
         form.AddField("seats", seats);
         if (inviteOnly)
         {
@@ -74,7 +74,7 @@ public static class ApiWrapper
 
     public static async UniTask<JToken> GameJoin(string gameId, string invitationCode = "")
     {
-        WWWForm form = new WWWForm();
+        var form = new WWWForm();
         form.AddField("game_id", gameId);
         if (!string.IsNullOrEmpty(invitationCode))
         {

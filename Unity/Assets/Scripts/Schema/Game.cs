@@ -20,11 +20,11 @@ namespace Schema
                 _games = new Dictionary<string, Game>();
             }
             
-            string gameId = (string) game["_id"];
+            var gameId = (string) game["_id"];
 
             if (!_games.ContainsKey(gameId))
             {
-                Game newGame = new Game(game);
+                var newGame = new Game(game);
                 _games.Add(gameId, newGame);
             }
             
