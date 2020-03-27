@@ -1,5 +1,5 @@
-# ADISE19_CoRes - Monopoliee
-### IHU Themed Monopoly
+# Monopoliee
+### International Hellenic University (IHU) Themed Monopoly
 
 #### PC version page [http://monopoliee.cores.gr](http://monopoliee.cores.gr)
 
@@ -17,7 +17,7 @@
 **Warning! We only support 64 bit versions of Windows 7 SP1 or later**<br/>
 We do not support any 32 bit Windows version or any version prior to Windows 7 SP1 
 
-1. [Unity 2019.2.14](https://unity3d.com/get-unity/download/archive)
+1. [Unity 2019.3.7](https://unity3d.com/get-unity/download/archive)
 
 2. [MongoDB Community Server](https://www.mongodb.com/download-center/community) (You can do a custom installation and choose **only** the Server module)
 
@@ -32,24 +32,22 @@ We do not support any 32 bit Windows version or any version prior to Windows 7 S
 
 Navigate to the folder where you want the project to be saved, open a terminal and run the following command
 ```bash
-git clone https://github.com/iee-ihu-gr-course1941/ADISE19_CoRes
+git clone https://gitlab.com/college-resources/monopoliee.git
 ```
 You may be asked to login to your GitHub account. This is because the project is owned by a private group.
 
 ## Preparing the API (Backend)
 
-1. Navigate to `ADISE19_CoRes/Backend` and run
+1. Navigate to `monopoliee/Backend` and run
 ```bash
 npm install
 ```
 
 If you get any `node-pre-gyp ERR!` errors during `npm install`, make sure you have all [bcrypt dependencies](https://github.com/kelektiv/node.bcrypt.js#dependencies) installed and run `npm install` again. **Windows users can also download our [prebuilt bcrypt package](https://cdn.discordapp.com/attachments/650336477674340352/650481763457695754/bcrypt.zip) and extract it inside `Backend/node_modules`.** After installing it, run `npm install` to make sure everything is fine.
 
-2. Configure a Replica Set in MongoDB. Find out more about this [here](https://docs.mongodb.com/manual/tutorial/deploy-replica-set/).
-
 ## Preparing the UI (Unity)
 
-1. Open Unity Editor and open the `ADISE19_CoRes/Unity` folder, as a Unity Project.
+1. Open Unity Editor and open the `monopoliee/Unity` folder, as a Unity Project.
 
 2. Go to `File -> Build Settings` and select all scenes in `Scenes to build`
 
@@ -95,6 +93,8 @@ If you get any `node-pre-gyp ERR!` errors during `npm install`, make sure you ha
 # Socket.io Events
 
 ## Game Events
+- gameIsStarting
+- gameLobbyTimer
 - gameStarted
 - gameEnded
 
@@ -116,6 +116,6 @@ If you get any `node-pre-gyp ERR!` errors during `npm install`, make sure you ha
 - playerGotJailed
 - playerGotFurloughed
 
-## Property API
+## Property Events
 - propertyOwnerChanged
 - propertyMortgagedChanged
