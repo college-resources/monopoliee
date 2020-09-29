@@ -1,7 +1,7 @@
 # Monopoliee
 ### International Hellenic University (IHU) Themed Monopoly
 
-#### PC version page [http://monopoliee.cores.gr](http://monopoliee.cores.gr)
+#### PC version page [monopoliee.cores.gr](https://monopoliee.cores.gr)
 
 #### Android version [download link](https://github.com/iee-ihu-gr-course1941/ADISE19_CoRes/releases/download/1.0.1/Monopoliee-v1.0.1.apk)
 
