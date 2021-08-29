@@ -6,6 +6,8 @@ if [ ! -f /root/project/docker/Unity_v2019.x.ulf ]; then
     read -p 'Please copy Unity_v2019.x.ulf to the Unity/docker folder and press enter.'
 fi
 
+sed -i 's/\/\/ #define MONOPOLIEE_PRODUCTION_MODE/#define MONOPOLIEE_PRODUCTION_MODE/' /root/project/Assets/Scripts/ApiWrapper.cs
+
 /opt/Unity/Editor/Unity \
     -nographics \
     -batchmode \
