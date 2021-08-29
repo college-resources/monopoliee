@@ -1,0 +1,22 @@
+# https://github.com/keycloak/keycloak-containers/blob/master/docker-compose-examples/keycloak-postgres.yml
+
+version: '3'
+
+volumes:
+  monopoliee_data:
+
+services:
+  server:
+    image: cores/monopoliee
+    ports:
+      - 3000:3000
+
+  database:
+    image: mongo
+    volumes:
+      - monopoliee_data:/data/db
+    network_mode: service:server
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
