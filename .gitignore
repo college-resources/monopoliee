@@ -1,2 +1,6 @@
 .idea
 .vscode
+
+Backend/unity-build
+Unity/docker/*.alf
+Unity/docker/*.ulf
