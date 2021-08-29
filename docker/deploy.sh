@@ -14,4 +14,5 @@ mv ../Unity/Build ../Backend/unity-build
 
 docker build -t cores/monopoliee -f ./Dockerfile ../Backend
 
+docker-compose down
 docker-compose up -d
