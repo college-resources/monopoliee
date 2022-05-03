@@ -1,4 +1,4 @@
-﻿// #define MONOPOLIEE_PRODUCTION_MODE
+// #define MONOPOLIEE_PRODUCTION_MODE
 
 using System;
 using System.IO;
@@ -11,8 +11,8 @@ using UnityEngine.Networking;
 public static class ApiWrapper
 {
     #if MONOPOLIEE_PRODUCTION_MODE
-    public const string HTTP_PROTOCOL = "http://";
-    public const string WS_PROTOCOL = "ws://";
+    public const string HTTP_PROTOCOL = "https://";
+    public const string WS_PROTOCOL = "wss://";
     public const string URL = "monopoliee.cores.gr/";
     public const string COOKIE_NAME = "connect.sid";
     #else
