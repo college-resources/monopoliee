@@ -21,7 +21,7 @@
 
 3. [NodeJS 10.X](https://nodejs.org/dist/latest-v10.x) (Recommended version: [NodeJS 10.18.0 x64](https://nodejs.org/dist/latest-v10.x/node-v10.18.0-x64.msi))
 
-4. [Git]([https://git-scm.com/download/win](https://git-scm.com/downloads))
+4. [Git](https://git-scm.com/download)
 
 ## Downloading the project
 
