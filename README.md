@@ -3,7 +3,7 @@
 
 #### PC version page [monopoliee.cores.gr](https://monopoliee.cores.gr)
 
-#### Android version [download link](https://github.com/iee-ihu-gr-course1941/ADISE19_CoRes/releases/download/1.0.1/Monopoliee-v1.0.1.apk)
+#### Android version [download link](https://static.knp.one/Monopoliee-v1.0.2.apk)
 
 #### Restrictions
 - 2 - 4 players
