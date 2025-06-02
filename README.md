@@ -3,19 +3,17 @@
 
 #### PC version page [monopoliee.cores.gr](https://monopoliee.cores.gr)
 
-#### Android version [download link](https://github.com/iee-ihu-gr-course1941/ADISE19_CoRes/releases/download/1.0.1/Monopoliee-v1.0.1.apk)
+#### Android version available in the GitHub [releases](https://github.com/college-resources/monopoliee/releases) page.
 
 #### Restrictions
 - 2 - 4 players
 - WebGL browser support needed for PC version
 
+# <p align="center">![](https://raw.githubusercontent.com/college-resources/monopoliee/refs/heads/master/Unity/Assets/Resources/board.png)</p>
+
 # Setup
 
 ## Dependencies
-
-### On Windows
-**Warning! We only support 64 bit versions of Windows 7 SP1 or later**<br/>
-We do not support any 32 bit Windows version or any version prior to Windows 7 SP1 
 
 1. [Unity 2019.3.7](https://unity3d.com/get-unity/download/archive)
 
@@ -23,10 +21,7 @@ We do not support any 32 bit Windows version or any version prior to Windows 7 S
 
 3. [NodeJS 10.X](https://nodejs.org/dist/latest-v10.x) (Recommended version: [NodeJS 10.18.0 x64](https://nodejs.org/dist/latest-v10.x/node-v10.18.0-x64.msi))
 
-4. [Git for Windows](https://git-scm.com/download/win)
-
-### On Linux
-**TBA**
+4. [Git]([https://git-scm.com/download/win](https://git-scm.com/downloads))
 
 ## Downloading the project
 
